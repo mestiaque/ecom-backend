@@ -1,0 +1,36 @@
+{
+    "name": "mestiaque/ecom",
+    "description": "Ecom module for Laravel (by M. Estiaque Ahmed Khan)",
+    "type": "library",
+    "keywords": [
+        "Laravel",
+        "Ecom",
+        "Estiaque"
+    ],
+    "authors": [
+        {
+            "name": "M. Estiaque Ahmed Khan",
+            "email": "info@mestiaque.com",
+            "homepage": "https://mestiaque.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "barryvdh/laravel-dompdf": "^3.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "ME\\Ecom\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "ME\\Ecom\\EcomServiceProvider"
+            ]
+        }
+    },
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
