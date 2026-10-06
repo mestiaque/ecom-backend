@@ -7,13 +7,12 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Fields filled by the storefront (efront): customer photo, verified phone / e-mail, billing address.
+     * Fields filled by the storefront (efront): verified phone / e-mail, billing address.
      */
     public function up(): void
     {
         Schema::table('ecom_customers', function (Blueprint $table) {
-            $table->string('avatar')->nullable()->after('email');
-            $table->timestamp('phone_verified_at')->nullable()->after('avatar');
+            $table->timestamp('phone_verified_at')->nullable()->after('email');
             $table->timestamp('email_verified_at')->nullable()->after('phone_verified_at');
         });
 
@@ -29,7 +28,7 @@ return new class extends Migration
         });
 
         Schema::table('ecom_customers', function (Blueprint $table) {
-            $table->dropColumn(['avatar', 'phone_verified_at', 'email_verified_at']);
+            $table->dropColumn(['phone_verified_at', 'email_verified_at']);
         });
     }
 };

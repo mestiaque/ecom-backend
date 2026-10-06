@@ -27,7 +27,7 @@
                     <tr>
                         <td class="text-center">{{ $brands->firstItem() + $loop->index }}</td>
                         <td class="text-center" style="width:80px">
-                            @if($brand->logo)<img src="{{ ecom_image($brand->logo) }}" alt="" style="height:36px;max-width:70px;object-fit:contain">@else<i class="fas fa-tag text-secondary"></i>@endif
+                            @if($brand->logo_url)<img src="{{ $brand->logo_url }}" alt="" style="height:36px;max-width:70px;object-fit:contain">@else<i class="fas fa-tag text-secondary"></i>@endif
                         </td>
                         <td><b>{{ $brand->name }}</b><div class="small text-muted">{{ $brand->slug }}</div></td>
                         <td class="text-center"><a href="{{ route('ecom.products.index', ['brand' => $brand->id]) }}">{{ $brand->products_count }}</a></td>

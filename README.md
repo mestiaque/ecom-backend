@@ -11,10 +11,14 @@ php artisan migrate --path=vendor/mestiaque/ecom/src/database/migrations
 php artisan storage:link
 php artisan db:seed --class="ME\Ecom\database\seeders\EcomSeeder"        # delivery zones, warranties, policy pages, defaults
 php artisan db:seed --class="ME\Ecom\database\seeders\EcomDemoSeeder"    # optional demo shop (see below)
-php artisan ecom:thumbnails                                             # thumbnails for images that have none
+php artisan metheme:media-import                                        # only when upgrading: move old image columns into me_media
 ```
 
-The admin panel lives under metheme's prefix (`METHEME_ROUTE_PREFIX`, default `admin`): shop dashboard at `/admin/shop`.
+The admin panel lives under metheme's prefix (`METHEME_ROUTE_PREFIX`, default `admin`): the **Dashboard** is the admin home at `/admin` (route `ecom.dashboard`, chart data `ecom.dashboard.chart` = `/admin/sales-chart`).
+metheme has no dashboard page of its own. ecom's Dashboard owns `/admin` (metheme then skips its own `/admin` redirect),
+and login goes there too (`me_settings.home_route` = `ecom.dashboard`, set in `EcomServiceProvider` unless `METHEME_HOME_ROUTE` is set).
+To show metheme's user/login/activity numbers on it, add `@include('me::widgets.system-overview')` (optionally with
+`['sections' => ['cards', 'chart', 'roles', 'activity', 'links']]`).
 Route names start with `ecom.` (`ecom.orders.index`, `ecom.products.edit`, …).
 
 ## Modules
@@ -25,7 +29,7 @@ Route names start with `ecom.` (`ecom.orders.index`, `ecom.products.edit`, …).
 | Orders | Filters, status flow (Pending → Confirmed → Processing → Shipped → Delivered / Cancelled / Returned), comments, invoice print + PDF, courier booking, payments & refunds |
 | Transactions | All payments and refunds, CSV export |
 | Customers | List, profile, order history, lifetime value, block/unblock |
-| Products | Variants from attributes (own SKU, price, stock, image), multiple images with background thumbnails, active/hidden, low-stock alert, CSV import/export |
+| Products | Variants from attributes (own SKU, price, stock, image), multiple images (sortable, main image) with background thumbnails, active/hidden, low-stock alert, CSV import/export |
 | Categories / Brands | Nested categories with image & banner, brands with logo |
 | Attributes | Variant attributes (Color with swatches, Size, Storage, Material, …) and their values |
 | Warranties | Warranty master data (number + day/month/year, stored in days), picked on each product |
@@ -54,7 +58,7 @@ Variants are built from **attributes** instead of fixed size/colour columns, so 
 Rules (checked on save): every variant has one value of each attribute, all variants use the same attributes,
 no combination repeats. A value used by a variant cannot be deleted.
 
-Tables: `ecom_attributes`, `ecom_attribute_values`, `ecom_product_variants` (`product_image_id`),
+Tables: `ecom_attributes`, `ecom_attribute_values`, `ecom_product_variants` (`media_id` = one of the product's gallery images),
 `ecom_product_variant_values` (variant ↔ value).
 
 ```php
@@ -100,28 +104,32 @@ $order->trackingUrl();       // courier's own tracking page
 
 Routes: `ecom.track.form`, `ecom.track.submit`, `ecom.track.show` (outside the admin prefix).
 
-## Product image thumbnails
+## Images (metheme media library)
 
-Every product image gets a small webp copy (longest side 400px) made by the queued job
-`ME\Ecom\Jobs\GenerateProductThumbnail`; its path is saved in `ecom_product_images.thumbnail`.
-Lists (products, dashboard, orders, product form) load the thumbnail instead of the full photo.
+Every image — product gallery, category image/banner, brand logo, banner, campaign banner, customer photo,
+store logo/favicon — is a row in metheme's **`me_media`** table, attached with metheme's `HasMedia` trait.
+There are no image columns in the `ecom_*` tables. See metheme's readme for the full API.
 
-- Dispatched automatically when a `ProductImage` is created (admin upload, seeder, …).
-- With `QUEUE_CONNECTION=sync` it runs **after the response is sent**, so uploads stay fast without a worker.
-  With `database`/`redis` it goes to the queue — run `php artisan queue:work`.
-- Until it has run, the full image is shown. Deleting an image deletes its thumbnail.
-- Files: `ecom/products/thumbs/{name}.webp` on the `public` disk.
-- Size / quality: `thumbnail.size` and `thumbnail.quality` in `src/Config/config.php`.
+| Model | Collection | Accessor |
+|---|---|---|
+| `Product` | `gallery` (many, sortable, first = main) | `$product->images`, `$product->primaryImage`, `$product->thumbnail` |
+| `ProductVariant` | — (`media_id` points at a gallery image) | `$variant->image` |
+| `Category` | `image`, `banner` | `$category->image_url`, `$category->banner_url` |
+| `Brand` | `logo` | `$brand->logo_url` |
+| `Banner` | `image` | `$banner->image_url` |
+| `Campaign` | `banner` | `$campaign->banner_url` |
+| `Customer` | `avatar` | `$customer->avatar_url` |
+| Store settings | settings `ecom_store_logo`, `ecom_store_favicon` | `get_image('ecom_store_logo')` |
+
+- Forms use `@include('me::components.media-input', [...])`; controllers call `$model->syncMediaFromRequest($request, 'collection')`.
+- Thumbnails (webp, `thumb` conversion) are made in the background by metheme's `GenerateMediaConversions` job.
+  With `QUEUE_CONNECTION=sync` it runs after the response is sent; otherwise run `php artisan queue:work`.
+  Until it has run, the full image is shown.
+- Eager load `->with('media')` in lists (`Product` lists use `primaryImage`).
+- Deleting a record moves its files to the Media Library trash.
 
 ```bash
-php artisan ecom:thumbnails          # images without a thumbnail (old uploads, restored backups)
-php artisan ecom:thumbnails --force  # remake all, e.g. after changing the size
-```
-
-```php
-$product->thumbnail;   // URL of the main image's thumbnail (full image until it exists)
-$image->thumb_url;     // thumbnail URL of one image
-$image->url;           // full image URL
+php artisan metheme:media-conversions --force   # remake thumbnails, e.g. after changing a size
 ```
 
 ## Delivery charges
@@ -150,7 +158,7 @@ Filled by the `mestiaque/efront` storefront (migration `2026_10_04_000001_add_st
 
 | Column | Meaning |
 |---|---|
-| `ecom_customers.avatar` | Profile photo path on the `public` disk — `$customer->avatar_url`, `$customer->initial` (first letter) |
+| Customer photo | Stored in `me_media` (collection `avatar`) — `$customer->avatar_url`, `$customer->initial` (first letter) |
 | `ecom_customers.phone_verified_at`, `email_verified_at` | Set when the customer confirmed the registration OTP; cleared when they change the phone / email |
 | `ecom_orders.billing_address` | Billing address when it differs from shipping (`null` = same as shipping); shown on the order page and invoice |
 
@@ -167,6 +175,10 @@ tables (or `php artisan migrate:refresh --path=vendor/mestiaque/ecom/src/databas
 ## Permissions
 
 Declared in `src/Config/permission.php` (`ecom_order.status`, `ecom_product.import`, `ecom_attribute.edit`, `ecom_warranty.edit`, …) — assign them to roles on metheme's Roles page.
+
+## Download links in admin views
+
+File downloads (CSV export, invoice PDF, import template …) must use `<a download href="…" class="no-loader …">`. Without them metheme's page loader starts on click and never stops, because a download does not load a new page.
 
 ## Helpers
 

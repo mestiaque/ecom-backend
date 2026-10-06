@@ -1,6 +1,6 @@
 @php
     $storeName = ecom_setting('store_name', get_setting('app_name', config('app.name')));
-    $logo = ecom_setting('store_logo');
+    $logo = get_image('ecom_store_logo');
 @endphp
 <!doctype html>
 <html lang="en">
@@ -11,7 +11,7 @@
     <title>@yield('title', 'Track Order') | {{ $storeName }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('backend/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
-    @if($favicon = ecom_setting('store_favicon'))<link rel="icon" href="{{ ecom_image($favicon) }}">@endif
+    @if($favicon = get_image('ecom_store_favicon'))<link rel="icon" href="{{ $favicon }}">@endif
     <style>
         body { background: #f4f6fb; color: #1f2937; }
         .ec-brand img { max-height: 44px; }
@@ -32,7 +32,7 @@
     <header class="bg-white border-bottom mb-4">
         <div class="container py-3 d-flex justify-content-between align-items-center" style="max-width: 860px">
             <a href="{{ url('/') }}" class="ec-brand text-decoration-none text-dark fw-bold fs-5">
-                @if($logo)<img src="{{ ecom_image($logo) }}" alt="{{ $storeName }}">@else{{ $storeName }}@endif
+                @if($logo)<img src="{{ $logo }}" alt="{{ $storeName }}">@else{{ $storeName }}@endif
             </a>
             <a href="{{ route('ecom.track.form') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-search me-1"></i>Track another order</a>
         </div>

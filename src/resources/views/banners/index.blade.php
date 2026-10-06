@@ -15,7 +15,7 @@
                 @forelse($banners->where('position', $position) as $banner)
                     <div class="col-md-6 col-xl-4">
                         <div class="card h-100 {{ $banner->is_active ? '' : 'opacity-50' }}">
-                            <img src="{{ ecom_image($banner->image) }}" class="card-img-top" style="aspect-ratio:16/7;object-fit:cover" alt="">
+                            <img src="{{ $banner->image_url }}" class="card-img-top" style="aspect-ratio:16/7;object-fit:cover" alt="">
                             <div class="card-body py-2">
                                 <div class="fw-semibold">{{ $banner->title ?: 'Untitled' }}</div>
                                 <div class="small text-muted">{{ $banner->subtitle }}</div>

@@ -6,12 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
+use ME\Models\Media;
 
 class ProductVariant extends Model
 {
     protected $table = 'ecom_product_variants';
 
-    protected $fillable = ['product_id', 'product_image_id', 'sku', 'price', 'discount_price', 'stock', 'is_active'];
+    protected $fillable = ['product_id', 'media_id', 'sku', 'price', 'discount_price', 'stock', 'is_active'];
 
     protected $casts = [
         'price' => 'decimal:2',
@@ -27,7 +28,7 @@ class ProductVariant extends Model
 
     public function image(): BelongsTo
     {
-        return $this->belongsTo(ProductImage::class, 'product_image_id');
+        return $this->belongsTo(Media::class, 'media_id'); // one of the product's gallery photos
     }
 
     /**

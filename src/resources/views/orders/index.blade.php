@@ -3,7 +3,7 @@
 
 @push('buttons')
     @if(can('ecom_order.export'))
-        <a href="{{ route('ecom.orders.export', request()->query()) }}" class="btn btn-sm btn-success shadow-sm"><i class="fas fa-file-csv me-1"></i>Export CSV</a>
+        <a download href="{{ route('ecom.orders.export', request()->query()) }}" class="no-loader btn btn-sm btn-success shadow-sm"><i class="fas fa-file-csv me-1"></i>Export CSV</a>
     @endif
 @endpush
 

@@ -4,8 +4,6 @@ namespace ME\Ecom\Http\Controllers;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use ME\Http\Controllers\Controller;
 
 /**
@@ -16,41 +14,6 @@ abstract class EcomController extends Controller
     protected function perPage(): int
     {
         return (int) get_setting('pagination', 15) ?: 15;
-    }
-
-    /**
-     * Store an uploaded image on the public disk and return its path.
-     */
-    protected function storeImage(UploadedFile $file, string $folder): string
-    {
-        return $file->store(config('ecom.upload_dir').'/'.$folder, 'public');
-    }
-
-    /**
-     * Replace the image in $field when a new file was uploaded (or remove it when "remove_{$field}" is checked).
-     */
-    protected function replaceImage(Request $request, string $field, ?string $current, string $folder): ?string
-    {
-        if ($request->hasFile($field)) {
-            $this->deleteImage($current);
-
-            return $this->storeImage($request->file($field), $folder);
-        }
-
-        if ($request->boolean("remove_{$field}")) {
-            $this->deleteImage($current);
-
-            return null;
-        }
-
-        return $current;
-    }
-
-    protected function deleteImage(?string $path): void
-    {
-        if ($path && ! str_starts_with($path, 'http')) {
-            Storage::disk('public')->delete($path);
-        }
     }
 
     /**

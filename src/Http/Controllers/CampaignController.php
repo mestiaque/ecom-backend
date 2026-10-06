@@ -22,7 +22,7 @@ class CampaignController extends EcomController
 
     public function index(): View
     {
-        $campaigns = Campaign::withCount('products')->latest('starts_at')->paginate($this->perPage());
+        $campaigns = Campaign::with('media')->withCount('products')->latest('starts_at')->paginate($this->perPage());
 
         return view('ecom::campaigns.index', compact('campaigns'));
     }
@@ -40,10 +40,10 @@ class CampaignController extends EcomController
     {
         $data = $this->validated($request);
         $data['slug'] = $this->slugs->uniqueSlug($data['title'], Campaign::class);
-        $data['banner'] = $request->hasFile('banner') ? $this->storeImage($request->file('banner'), 'campaigns') : null;
 
         me_change_log('Campaign created: '.$data['title'], 'ecom.campaign.create')->with(['products'])->create(fn () => DB::transaction(function () use ($data, $request) {
             $campaign = Campaign::create($data);
+            $campaign->syncMediaFromRequest($request, 'banner');
             $campaign->products()->sync($request->input('products', []));
 
             return $campaign;
@@ -64,13 +64,13 @@ class CampaignController extends EcomController
     public function update(Request $request, Campaign $campaign): RedirectResponse
     {
         $data = $this->validated($request);
-        $data['banner'] = $this->replaceImage($request, 'banner', $campaign->banner, 'campaigns');
 
         me_change_log('Campaign updated: '.$campaign->title, 'ecom.campaign.update')
             ->watch($campaign, ['products'])
             ->itemName('products', 'title')
             ->run(fn () => DB::transaction(function () use ($campaign, $data, $request) {
                 $campaign->update($data);
+                $campaign->syncMediaFromRequest($request, 'banner');
                 $campaign->products()->sync($request->input('products', []));
             }));
 
@@ -80,7 +80,6 @@ class CampaignController extends EcomController
     public function destroy(Campaign $campaign): RedirectResponse
     {
         me_change_log('Campaign deleted: '.$campaign->title, 'ecom.campaign.delete')->watch($campaign)->delete(fn () => $campaign->delete());
-        $this->deleteImage($campaign->banner);
 
         return redirect()->route('ecom.campaigns.index')->with('success', 'Campaign deleted.');
     }

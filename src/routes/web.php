@@ -35,8 +35,9 @@ Route::group([
     'as' => 'ecom.',
     'middleware' => ['web', 'auth', LocaleMiddleware::class, 'activityLog'],
 ], function () {
-    Route::get('/shop', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/shop/chart', [DashboardController::class, 'chart'])->name('dashboard.chart');
+    // The admin home (/{prefix}); metheme then skips its own home redirect
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/sales-chart', [DashboardController::class, 'chart'])->name('dashboard.chart');
 
     // Catalog
     Route::get('/products/export', [ProductController::class, 'export'])->name('products.export');

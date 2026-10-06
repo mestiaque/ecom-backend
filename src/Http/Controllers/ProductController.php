@@ -113,12 +113,9 @@ class ProductController extends EcomController
 
     public function destroy(Product $product): RedirectResponse
     {
-        $paths = $product->images()->get(['path', 'thumbnail'])->flatMap(fn ($image) => [$image->path, $image->thumbnail])->filter();
-
         me_change_log('Product deleted: '.$product->title, 'ecom.product.delete')
             ->watch($product, ['variants'])
             ->delete(fn () => $product->delete());
-        $paths->each(fn ($path) => $this->deleteImage($path));
 
         return redirect()->route('ecom.products.index')->with('success', 'Product deleted.');
     }
@@ -191,7 +188,7 @@ class ProductController extends EcomController
             'variants.*.id' => ['nullable', 'integer', Rule::in($product ? $product->variants()->pluck('id')->all() : [])],
             'variants.*.values' => 'required_with:variants|array|min:1',
             'variants.*.values.*' => 'integer|exists:ecom_attribute_values,id',
-            'variants.*.product_image_id' => ['nullable', 'integer', Rule::in($product ? $product->images()->pluck('id')->all() : [])],
+            'variants.*.media_id' => ['nullable', 'integer', Rule::in($product ? $product->images()->pluck('id')->all() : [])],
             'variants.*.sku' => ['nullable', 'string', 'max:100', 'distinct', Rule::unique('ecom_product_variants', 'sku')->whereNotIn('id', $variantIds)],
             'variants.*.price' => 'nullable|numeric|min:0',
             'variants.*.discount_price' => 'nullable|numeric|min:0',
@@ -276,7 +273,7 @@ class ProductController extends EcomController
 
         foreach ($request->input('variants', []) as $row) {
             $values = [
-                'product_image_id' => ($row['product_image_id'] ?? null) ?: null,
+                'media_id' => ($row['media_id'] ?? null) ?: null,
                 'sku' => ($row['sku'] ?? null) ?: null,
                 'price' => is_numeric($row['price'] ?? null) ? $row['price'] : null,
                 'discount_price' => is_numeric($row['discount_price'] ?? null) ? $row['discount_price'] : null,
@@ -296,26 +293,10 @@ class ProductController extends EcomController
     }
 
     /**
-     * Remove ticked images, set the primary image and add new uploads at the end.
+     * Photos are kept in me_media (metheme) — removals, order, main photo and new uploads from the form.
      */
     private function saveImages(Product $product, Request $request): void
     {
-        $remove = array_map('intval', (array) $request->input('remove_images', []));
-
-        foreach ($product->images()->whereIn('id', $remove)->get() as $image) {
-            $this->deleteImage($image->path);
-            $image->delete();
-        }
-
-        if ($primaryId = (int) $request->input('primary_image')) {
-            $product->images()->where('id', $primaryId)->update(['sort_order' => 0]);
-            $product->images()->where('id', '!=', $primaryId)->where('sort_order', 0)->update(['sort_order' => 1]);
-        }
-
-        $next = (int) $product->images()->max('sort_order') + 1;
-
-        foreach ((array) $request->file('images', []) as $file) {
-            $product->images()->create(['path' => $this->storeImage($file, 'products'), 'sort_order' => $next++]);
-        }
+        $product->syncMediaFromRequest($request, 'gallery', 'images');
     }
 }

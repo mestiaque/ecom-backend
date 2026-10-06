@@ -2,7 +2,7 @@
 @section('title', 'Transactions')
 
 @push('buttons')
-    <a href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}" class="btn btn-sm btn-success shadow-sm"><i class="fas fa-file-csv me-1"></i>Export CSV</a>
+    <a download href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}" class="no-loader btn btn-sm btn-success shadow-sm"><i class="fas fa-file-csv me-1"></i>Export CSV</a>
 @endpush
 
 @section('content')

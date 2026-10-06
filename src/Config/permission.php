@@ -6,7 +6,7 @@
 */
 return [
     'ecom' => [
-        'title' => 'Shop Dashboard',
+        'title' => 'Dashboard',
         'actions' => 'dashboard',
     ],
     'ecom_product' => [

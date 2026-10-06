@@ -1,5 +1,5 @@
 @extends('me::master')
-@section('title', 'Shop Dashboard')
+@section('title', 'Dashboard')
 
 @push('css')
 <style>

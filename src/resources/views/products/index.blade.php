@@ -6,7 +6,7 @@
         <a href="#" class="btn btn-sm btn-encodex-list text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#importModal"><i class="fas fa-file-import me-1"></i>Import CSV</a>
     @endif
     @if(can('ecom_product.export'))
-        <a href="{{ route('ecom.products.export', request()->query()) }}" class="btn btn-sm btn-success shadow-sm"><i class="fas fa-file-export me-1"></i>Export CSV</a>
+        <a download href="{{ route('ecom.products.export', request()->query()) }}" class="no-loader btn btn-sm btn-success shadow-sm"><i class="fas fa-file-export me-1"></i>Export CSV</a>
     @endif
     @if(can('ecom_product.create'))
         @component('me::components.btn.add-button', ['route' => route('ecom.products.create'), 'text' => 'Add Product', 'class' => 'btn-encodex-create'])
@@ -158,7 +158,7 @@
                     Category can be nested with <code>&gt;</code> (e.g. <code>Men &gt; T-Shirts</code>); missing categories and brands are created.
                     Variants are not imported — add them on the product page.
                 </p>
-                <a href="{{ route('ecom.products.import-template') }}" class="small"><i class="fas fa-download"></i> Download template</a>
+                <a download href="{{ route('ecom.products.import-template') }}" class="no-loader small"><i class="fas fa-download"></i> Download template</a>
                 <input type="file" name="file" accept=".csv,text/csv" class="form-control form-control-sm mt-2" required>
             </div>
             <div class="modal-footer">

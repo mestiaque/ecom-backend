@@ -20,7 +20,7 @@ class BrandController extends EcomController
 
     public function index(Request $request): View
     {
-        $brands = Brand::withCount('products')
+        $brands = Brand::with('media')->withCount('products')
             ->when($request->search, fn ($q, $search) => $q->where('name', 'like', "%{$search}%"))
             ->orderBy('name')
             ->paginate($this->perPage())
@@ -38,9 +38,10 @@ class BrandController extends EcomController
     {
         $data = $this->validated($request);
         $data['slug'] = $this->slugs->uniqueSlug(($data['slug'] ?? null) ?: $data['name'], Brand::class);
-        $data['logo'] = $request->hasFile('logo') ? $this->storeImage($request->file('logo'), 'brands') : null;
 
-        me_change_log('Brand created: '.$data['name'], 'ecom.brand.create')->create(fn () => Brand::create($data));
+        $brand = me_change_log('Brand created: '.$data['name'], 'ecom.brand.create')->create(fn () => Brand::create($data));
+        // Files go to me_media (metheme)
+        $brand->syncMediaFromRequest($request, 'logo');
 
         return redirect()->route('ecom.brands.index')->with('success', 'Brand created.');
     }
@@ -54,9 +55,9 @@ class BrandController extends EcomController
     {
         $data = $this->validated($request);
         $data['slug'] = $this->slugs->uniqueSlug(($data['slug'] ?? null) ?: $data['name'], Brand::class, $brand->id);
-        $data['logo'] = $this->replaceImage($request, 'logo', $brand->logo, 'brands');
 
         me_change_log('Brand updated: '.$brand->name, 'ecom.brand.update')->watch($brand)->run(fn () => $brand->update($data));
+        $brand->syncMediaFromRequest($request, 'logo');
 
         return redirect()->route('ecom.brands.index')->with('success', 'Brand updated.');
     }
@@ -64,7 +65,6 @@ class BrandController extends EcomController
     public function destroy(Brand $brand): RedirectResponse
     {
         me_change_log('Brand deleted: '.$brand->name, 'ecom.brand.delete')->watch($brand)->delete(fn () => $brand->delete());
-        $this->deleteImage($brand->logo);
 
         return redirect()->route('ecom.brands.index')->with('success', 'Brand deleted.');
     }

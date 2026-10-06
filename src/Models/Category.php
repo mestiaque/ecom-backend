@@ -7,14 +7,38 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use ME\Traits\HasMedia;
 
 class Category extends Model
 {
+    use HasMedia;
+
     protected $table = 'ecom_categories';
 
-    protected $fillable = ['parent_id', 'name', 'slug', 'description', 'image', 'banner', 'sort_order', 'is_active'];
+    protected $fillable = ['parent_id', 'name', 'slug', 'description', 'sort_order', 'is_active'];
 
     protected $casts = ['is_active' => 'boolean'];
+
+    /**
+     * Files in me_media (metheme): small card image and wide page banner.
+     */
+    protected function mediaCollections(): array
+    {
+        return [
+            'image' => ['single' => true, 'mimes' => 'jpg,jpeg,png,webp,gif,svg', 'max_kb' => 2048, 'conversions' => ['thumb' => 300]],
+            'banner' => ['single' => true, 'mimes' => 'jpg,jpeg,png,webp,gif,svg', 'max_kb' => 4096, 'conversions' => ['thumb' => 600]],
+        ];
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->mediaUrl('image', 'thumb');
+    }
+
+    public function getBannerUrlAttribute(): ?string
+    {
+        return $this->mediaUrl('banner');
+    }
 
     public function parent(): BelongsTo
     {
@@ -59,7 +83,7 @@ class Category extends Model
      */
     public static function tree(?int $exceptId = null): Collection
     {
-        $all = self::withCount('products')->orderBy('sort_order')->orderBy('name')->get();
+        $all = self::with('media')->withCount('products')->orderBy('sort_order')->orderBy('name')->get();
         $except = $exceptId ? $all->firstWhere('id', $exceptId) : null;
         $excluded = $except ? array_merge([$except->id], $except->descendantIds()) : [];
         $grouped = $all->reject(fn ($category) => in_array($category->id, $excluded))->groupBy('parent_id');

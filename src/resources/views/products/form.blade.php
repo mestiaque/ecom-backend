@@ -11,7 +11,7 @@
     $variants = old('variants') !== null
         ? array_map(fn ($row) => $row + ['is_active' => 0], old('variants'))
         : ($product->exists
-            ? $product->variants->map(fn ($v) => $v->only(['id', 'sku', 'price', 'discount_price', 'stock', 'product_image_id']) + ['is_active' => $v->is_active ? 1 : 0, 'values' => $v->values->pluck('id')->all()])->all()
+            ? $product->variants->map(fn ($v) => $v->only(['id', 'sku', 'price', 'discount_price', 'stock', 'media_id']) + ['is_active' => $v->is_active ? 1 : 0, 'values' => $v->values->pluck('id')->all()])->all()
             : []);
     $hasVariants = (bool) old('has_variants', $product->has_variants);
     $attributeData = $attributes->map(fn ($a) => [
@@ -181,28 +181,14 @@
             <div class="card glass-card mb-3">
                 <div class="card-header fw-semibold"><i class="fas fa-images me-1"></i> Images</div>
                 <div class="card-body">
-                    @if($product->exists && $product->images->isNotEmpty())
-                        <div class="row g-2 mb-3">
-                            @foreach($product->images as $image)
-                                <div class="col-4 text-center">
-                                    <img src="{{ $image->thumb_url }}" loading="lazy" class="img-fluid rounded border mb-1" style="aspect-ratio:1;object-fit:cover" alt="">
-                                    <div class="form-check form-check-inline small m-0" title="Main image">
-                                        <input class="form-check-input" type="radio" name="primary_image" value="{{ $image->id }}" id="primary{{ $image->id }}" @checked($loop->first)>
-                                        <label class="form-check-label" for="primary{{ $image->id }}">Main</label>
-                                    </div>
-                                    <div class="form-check form-check-inline small m-0">
-                                        <input class="form-check-input" type="checkbox" name="remove_images[]" value="{{ $image->id }}" id="rm{{ $image->id }}">
-                                        <label class="form-check-label text-danger" for="rm{{ $image->id }}">Delete</label>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                    <input type="file" name="images[]" multiple accept="image/*" class="form-control form-control-sm @error('images') is-invalid @enderror @error('images.*') is-invalid @enderror" id="imageInput">
-                    <small class="form-text text-muted">Select several images at once (max 10, 4MB each). The first image is the main one.</small>
-                    @error('images')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    @error('images.*')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    <div class="row g-2 mt-1" id="imagePreview"></div>
+                    {{-- Photos are kept in me_media (metheme Media Library) --}}
+                    @include('me::components.media-input', [
+                        'name' => 'images',
+                        'collection' => 'gallery',
+                        'model' => $product,
+                        'multiple' => true,
+                        'help' => 'Select several images at once (max 10, 4MB each). Drag to reorder — the main image is shown first.',
+                    ])
                 </div>
             </div>
 
@@ -252,8 +238,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const ids = sortValues(row.values || []);
         const name = f => 'variants[' + i + '][' + f + ']';
         const imageCell = images.length
-            ? '<td><select name="' + name('product_image_id') + '" class="form-select form-select-sm"><option value="">Main</option>' +
-              images.map(img => '<option value="' + img.id + '"' + (String(row.product_image_id) === String(img.id) ? ' selected' : '') + '>' + esc(img.label) + '</option>').join('') + '</select></td>'
+            ? '<td><select name="' + name('media_id') + '" class="form-select form-select-sm"><option value="">Main</option>' +
+              images.map(img => '<option value="' + img.id + '"' + (String(row.media_id) === String(img.id) ? ' selected' : '') + '>' + esc(img.label) + '</option>').join('') + '</select></td>'
             : '';
         const tr = document.createElement('tr');
         tr.dataset.key = keyOf(ids);
@@ -351,13 +337,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     tbody?.addEventListener('input', summary);
 
-    document.getElementById('imageInput').addEventListener('change', function () {
-        const preview = document.getElementById('imagePreview');
-        preview.innerHTML = '';
-        Array.from(this.files).forEach(file => {
-            const url = URL.createObjectURL(file);
-            preview.insertAdjacentHTML('beforeend', '<div class="col-4"><img src="' + url + '" class="img-fluid rounded border" style="aspect-ratio:1;object-fit:cover"></div>');
-        });
     });
 });
 </script>

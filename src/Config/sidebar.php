@@ -6,13 +6,13 @@
 */
 return [
     [
-        'title' => 'Shop Dashboard',
-        'icon' => 'fas fa-store',
+        'title' => 'Dashboard',
+        'icon' => 'fas fa-tachometer-alt',
         'route' => 'ecom.dashboard',
         'for_active' => 'ecom.dashboard',
         'icon_color' => 'icc-38',
         'permit' => 'ecom.dashboard',
-        'sl' => 2,
+        'sl' => 1,
     ],
     [
         'title' => 'Orders & Sales',

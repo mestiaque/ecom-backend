@@ -14,8 +14,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('description')->nullable();
-            $table->string('image')->nullable();
-            $table->string('banner')->nullable();
             $table->unsignedInteger('sort_order')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
@@ -25,7 +23,6 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
-            $table->string('logo')->nullable();
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
@@ -67,15 +64,6 @@ return new class extends Migration
             $table->index(['is_active', 'stock']);
         });
 
-        Schema::create('ecom_product_images', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('product_id')->constrained('ecom_products')->cascadeOnDelete();
-            $table->string('path');
-            $table->string('thumbnail')->nullable()->comment('small webp made in the background (GenerateProductThumbnail)');
-            $table->unsignedInteger('sort_order')->default(0);
-            $table->timestamps();
-        });
-
         // Variant attributes: Color, Size, Storage, Material, ... and their values (Red, M, 128GB, ...)
         Schema::create('ecom_attributes', function (Blueprint $table) {
             $table->id();
@@ -100,7 +88,8 @@ return new class extends Migration
         Schema::create('ecom_product_variants', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained('ecom_products')->cascadeOnDelete();
-            $table->foreignId('product_image_id')->nullable()->constrained('ecom_product_images')->nullOnDelete();
+            // Photo from the product gallery (me_media id). No FK: metheme's me_media table is created after this migration.
+            $table->unsignedBigInteger('media_id')->nullable()->index();
             $table->string('sku')->nullable()->unique();
             $table->decimal('price', 12, 2)->nullable()->comment('null = product price');
             $table->decimal('discount_price', 12, 2)->nullable();
@@ -136,7 +125,6 @@ return new class extends Migration
         Schema::dropIfExists('ecom_product_variants');
         Schema::dropIfExists('ecom_attribute_values');
         Schema::dropIfExists('ecom_attributes');
-        Schema::dropIfExists('ecom_product_images');
         Schema::dropIfExists('ecom_products');
         Schema::dropIfExists('ecom_brands');
         Schema::dropIfExists('ecom_warranties');

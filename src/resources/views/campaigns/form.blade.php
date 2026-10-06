@@ -35,7 +35,7 @@
                         <label class="font-weight-bold text-primary">Description</label>
                         <textarea name="description" rows="3" class="form-control form-control-sm">{{ old('description', $campaign->description) }}</textarea>
                     </div>
-                    @include('ecom::partials.image-input', ['name' => 'banner', 'label' => 'Banner', 'current' => $campaign->banner])
+                    @include('me::components.media-input', ['name' => 'banner', 'collection' => 'banner', 'model' => $campaign, 'label' => 'Banner'])
                     @include('ecom::partials.switch', ['name' => 'is_active', 'label' => 'Active', 'checked' => $campaign->is_active])
                 </div>
                 <div class="col-md-6">

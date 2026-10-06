@@ -4,10 +4,12 @@ namespace ME\Ecom\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\View\View;
 use ME\Ecom\Enums\PaymentMethod;
 use ME\Ecom\Services\Couriers\CourierManager;
 use ME\Ecom\Support\EcomSettings;
+use ME\Models\Setting;
 
 /**
  * Store info, payment gateways and courier credentials (settings table, "ecom_" keys).
@@ -49,15 +51,20 @@ class SettingController extends EcomController
         $rules['order_prefix'] = 'nullable|string|max:10|alpha_dash';
         $rules['store_logo'] = 'nullable|image|max:2048';
         $rules['store_favicon'] = 'nullable|image|max:512';
-        $data = $request->validate($rules);
+        $data = Arr::except($request->validate($rules), ['store_logo', 'store_favicon']);
 
-        foreach (['store_logo', 'store_favicon'] as $field) {
-            $data[$field] = $this->replaceImage($request, $field, $this->settings->get($field), 'store');
-        }
-
-        $keys = array_keys($data);
+        $keys = array_merge(array_keys($data), ['store_logo', 'store_favicon']);
         $before = $this->settings->snapshot($keys);
         $this->settings->set($data);
+
+        // Logo and favicon are image settings in me_media (metheme) — read them with get_image('ecom_store_logo')
+        foreach (['store_logo', 'store_favicon'] as $field) {
+            if ($request->hasFile($field)) {
+                Setting::setImage("ecom_{$field}", $request->file($field));
+            } elseif ($request->input("{$field}_remove")) {
+                Setting::removeImage("ecom_{$field}");
+            }
+        }
         me_change_log('Store info updated', 'ecom.settings.store')->record($before, $this->settings->snapshot($keys));
 
         return back()->with('success', 'Store info saved.');

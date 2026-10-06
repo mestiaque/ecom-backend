@@ -5,12 +5,15 @@ namespace ME\Ecom\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use ME\Traits\HasMedia;
 
 class Campaign extends Model
 {
+    use HasMedia;
+
     protected $table = 'ecom_campaigns';
 
-    protected $fillable = ['title', 'slug', 'description', 'banner', 'discount_type', 'discount_value', 'starts_at', 'ends_at', 'is_active'];
+    protected $fillable = ['title', 'slug', 'description', 'discount_type', 'discount_value', 'starts_at', 'ends_at', 'is_active'];
 
     protected $casts = [
         'discount_value' => 'decimal:2',
@@ -18,6 +21,19 @@ class Campaign extends Model
         'ends_at' => 'datetime',
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Campaign banner in me_media (metheme).
+     */
+    protected function mediaCollections(): array
+    {
+        return ['banner' => ['single' => true, 'mimes' => 'jpg,jpeg,png,webp,gif,svg', 'max_kb' => 4096, 'conversions' => ['thumb' => 600]]];
+    }
+
+    public function getBannerUrlAttribute(): ?string
+    {
+        return $this->mediaUrl('banner');
+    }
 
     public function products(): BelongsToMany
     {

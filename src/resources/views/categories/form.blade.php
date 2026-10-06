@@ -33,8 +33,8 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    @include('ecom::partials.image-input', ['name' => 'image', 'label' => 'Category Image', 'current' => $category->image, 'help' => 'Square icon/thumbnail, max 2MB'])
-                    @include('ecom::partials.image-input', ['name' => 'banner', 'label' => 'Category Banner', 'current' => $category->banner, 'help' => 'Wide banner for the category page, max 4MB'])
+                    @include('me::components.media-input', ['name' => 'image', 'collection' => 'image', 'model' => $category, 'label' => 'Category Image', 'help' => 'Square icon/thumbnail, max 2MB'])
+                    @include('me::components.media-input', ['name' => 'banner', 'collection' => 'banner', 'model' => $category, 'label' => 'Category Banner', 'help' => 'Wide banner for the category page, max 4MB'])
                     @include('ecom::partials.switch', ['name' => 'is_active', 'label' => 'Active', 'checked' => $category->is_active])
                 </div>
             </div>

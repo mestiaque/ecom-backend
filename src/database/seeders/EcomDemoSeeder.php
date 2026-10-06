@@ -29,6 +29,7 @@ use ME\Ecom\Models\Warranty;
 use ME\Ecom\Services\Couriers\CourierManager;
 use ME\Ecom\Services\OrderService;
 use ME\Ecom\Support\EcomSettings;
+use ME\Models\Setting;
 use ME\Models\User;
 
 /**
@@ -219,7 +220,6 @@ class EcomDemoSeeder extends Seeder
             'social_whatsapp' => '+8801711-000000',
             'order_prefix' => 'ORD-',
             'invoice_footer' => 'Thank you for shopping with ShopNest BD! Hotline 09612-345678 · 7 days easy return.',
-            'store_logo' => $logo,
             'low_stock_threshold' => '5',
             'payment_cod_enabled' => '1',
             'payment_cod_instructions' => 'Pay the delivery rider in cash when you receive your parcel.',
@@ -238,6 +238,7 @@ class EcomDemoSeeder extends Seeder
             'payment_sslcommerz_store_id' => 'shopn0demo',
             'payment_sslcommerz_instructions' => 'Pay with Visa, Mastercard, Amex or internet banking.',
         ]);
+        Setting::setImage('ecom_store_logo', Storage::disk('public')->path($logo));
         $settings->set([
             'payment_bkash_app_secret' => 'demo-secret',
             'payment_bkash_password' => 'demo-password',
@@ -288,16 +289,17 @@ class EcomDemoSeeder extends Seeder
                     'name' => $childName,
                     'slug' => $key,
                     'description' => "{$childName} for every style and budget.",
-                    'image' => $image,
                     'sort_order' => $childSort++,
                 ]);
+                $categories[$key]->addMediaFromDisk($image, 'image');
             }
 
             $parentImage = $this->path("categories/{$slug}.webp");
             Storage::disk('public')->copy($photos[0], $parentImage);
             $banner = $this->path("categories/{$slug}-banner.jpg");
             $this->images->banner($banner, 1200, 320, 'ShopNest '.$name, $name, 'Best prices · Cash on delivery · Easy return', null, $photos, $color, $this->images->shade($color, -70));
-            $parent->update(['image' => $parentImage, 'banner' => $banner]);
+            $parent->addMediaFromDisk($parentImage, 'image');
+            $parent->addMediaFromDisk($banner, 'banner');
             $categories[$name] = $parent;
         }
 
@@ -320,9 +322,9 @@ class EcomDemoSeeder extends Seeder
             $brands[$name] = Brand::create([
                 'name' => $name,
                 'slug' => Str::slug($name),
-                'logo' => $logo,
                 'description' => "Genuine {$name} products, sourced from authorised distributors.",
             ]);
+            $brands[$name]->addMediaFromDisk($logo, 'logo');
         }
 
         return $brands;
@@ -362,7 +364,7 @@ class EcomDemoSeeder extends Seeder
                 'created_at' => now()->subDays(self::DAYS_OF_HISTORY + random_int(5, 40)),
             ]);
 
-            $images = collect(array_keys($item['images']))->map(fn ($n) => $product->images()->create(['path' => $this->photoPath($item, $n), 'sort_order' => $n]));
+            $images = collect(array_keys($item['images']))->map(fn ($n) => $product->addMediaFromDisk($this->photoPath($item, $n), 'gallery', attributes: ['sort_order' => $n]));
 
             if ($plan) {
                 $this->variants($product, $plan, $price, $discount, $images->pluck('id')->all());
@@ -398,7 +400,7 @@ class EcomDemoSeeder extends Seeder
      * One variant per combination of the plan's values, with its own SKU, stock, price step and colour photo.
      *
      * @param  array<string, array<mixed>>  $plan
-     * @param  array<int, int>  $imageIds
+     * @param  array<int, int>  $imageIds  gallery me_media ids, in order
      */
     private function variants(Product $product, array $plan, float $price, ?float $discount, array $imageIds): void
     {
@@ -429,7 +431,7 @@ class EcomDemoSeeder extends Seeder
                 'price' => $step ? $this->roundTaka($price * (1 + $step / 100)) : null,
                 'discount_price' => $step && $discount ? $this->roundTaka($discount * (1 + $step / 100)) : null,
                 'stock' => random_int(3, 14),
-                'product_image_id' => $colorIndex !== null ? ($imageIds[$colorIndex] ?? null) : null,
+                'media_id' => $colorIndex !== null ? ($imageIds[$colorIndex] ?? null) : null,
             ]);
             $variant->values()->sync(collect($combo)->map(fn ($value, $attribute) => $this->attributeValues[$attribute][$value]->id)->values()->all());
         }
@@ -473,10 +475,12 @@ class EcomDemoSeeder extends Seeder
             $this->images->banner($banner, 1600, 640, $start->isFuture() ? 'Coming soon' : 'Limited time', $title, $subtitle, 'Shop Now',
                 $items->take(3)->map(fn ($product) => $product->images()->value('path'))->all(), $color, $this->images->shade($color, -80));
 
-            Campaign::create([
-                'title' => $title, 'slug' => Str::slug($title), 'description' => $subtitle, 'banner' => $banner,
+            $campaign = Campaign::create([
+                'title' => $title, 'slug' => Str::slug($title), 'description' => $subtitle,
                 'discount_type' => $type, 'discount_value' => $value, 'starts_at' => $start, 'ends_at' => $end,
-            ])->products()->sync($items->pluck('id'));
+            ]);
+            $campaign->addMediaFromDisk($banner, 'banner');
+            $campaign->products()->sync($items->pluck('id'));
         }
     }
 
@@ -777,9 +781,9 @@ class EcomDemoSeeder extends Seeder
                 $this->images->banner($image, $width, $height, $eyebrow, $title, $subtitle, $button, $photos, $from, $to);
 
                 Banner::create([
-                    'title' => $title, 'subtitle' => $subtitle, 'image' => $image, 'link' => $link, 'button_text' => $button,
+                    'title' => $title, 'subtitle' => $subtitle, 'link' => $link, 'button_text' => $button,
                     'position' => $position, 'sort_order' => $sort + 1, 'is_active' => $row[8] ?? true,
-                ]);
+                ])->addMediaFromDisk($image, 'image');
             }
         }
     }

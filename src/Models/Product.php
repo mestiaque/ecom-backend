@@ -7,11 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\DB;
+use ME\Models\Media;
+use ME\Traits\HasMedia;
 
 class Product extends Model
 {
+    use HasMedia;
+
     protected $table = 'ecom_products';
 
     protected $fillable = [
@@ -49,14 +54,24 @@ class Product extends Model
         return $this->belongsTo(Warranty::class);
     }
 
-    public function images(): HasMany
+    /**
+     * Product photos live in me_media (metheme), collection "gallery". The first one is the main photo.
+     */
+    protected function mediaCollections(): array
     {
-        return $this->hasMany(ProductImage::class)->orderBy('sort_order')->orderBy('id');
+        return [
+            'gallery' => ['mimes' => 'jpg,jpeg,png,webp,gif', 'max_kb' => 4096, 'conversions' => ['thumb' => 400]],
+        ];
     }
 
-    public function primaryImage(): HasOne
+    public function images(): MorphMany
     {
-        return $this->hasOne(ProductImage::class)->orderBy('sort_order')->orderBy('id');
+        return $this->morphMany(Media::class, 'mediable')->where('collection', 'gallery')->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function primaryImage(): MorphOne
+    {
+        return $this->morphOne(Media::class, 'mediable')->where('collection', 'gallery')->orderBy('sort_order')->orderBy('id');
     }
 
     public function variants(): HasMany

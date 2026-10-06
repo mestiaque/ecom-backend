@@ -1,11 +1,11 @@
 @php
     $money = fn ($amount) => ecom_money($amount, $pdf);
     $storeName = ecom_setting('store_name', get_setting('app_name', config('app.name')));
-    $logo = ecom_setting('store_logo');
+    $logo = \ME\Models\Setting::image('ecom_store_logo');
     $logoSrc = null;
     if ($logo) {
         // dompdf reads local files faster and without HTTP; the browser needs a URL
-        $logoSrc = $pdf ? storage_path('app/public/' . $logo) : ecom_image($logo);
+        $logoSrc = $pdf ? $logo->absolutePath() : $logo->url();
         if ($pdf && ! is_file($logoSrc)) { $logoSrc = null; }
     }
 @endphp

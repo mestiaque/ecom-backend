@@ -36,8 +36,8 @@
             <div class="card glass-card mb-3">
                 <div class="card-header fw-semibold"><i class="fas fa-image me-1"></i> Branding</div>
                 <div class="card-body">
-                    @include('ecom::partials.image-input', ['name' => 'store_logo', 'label' => 'Site Logo', 'current' => $settings->get('store_logo'), 'help' => 'Shown on the website and invoices'])
-                    @include('ecom::partials.image-input', ['name' => 'store_favicon', 'label' => 'Favicon', 'current' => $settings->get('store_favicon')])
+                    @include('me::components.media-input', ['name' => 'store_logo', 'collection' => 'image', 'model' => \ME\Models\Setting::firstWhere('key', 'ecom_store_logo'), 'label' => 'Site Logo', 'help' => 'Shown on the website and invoices'])
+                    @include('me::components.media-input', ['name' => 'store_favicon', 'collection' => 'image', 'model' => \ME\Models\Setting::firstWhere('key', 'ecom_store_favicon'), 'label' => 'Favicon', 'accept' => 'image/*,.ico'])
                 </div>
             </div>
             <button type="submit" class="btn btn-encodex-save w-100"><i class="fas fa-save me-1"></i> Save</button>

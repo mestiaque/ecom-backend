@@ -33,10 +33,11 @@ class CategoryController extends EcomController
     {
         $data = $this->validated($request);
         $data['slug'] = $this->slugs->uniqueSlug(($data['slug'] ?? null) ?: $data['name'], Category::class);
-        $data['image'] = $request->hasFile('image') ? $this->storeImage($request->file('image'), 'categories') : null;
-        $data['banner'] = $request->hasFile('banner') ? $this->storeImage($request->file('banner'), 'categories') : null;
 
-        me_change_log('Category created: '.$data['name'], 'ecom.category.create')->create(fn () => Category::create($data));
+        $category = me_change_log('Category created: '.$data['name'], 'ecom.category.create')->create(fn () => Category::create($data));
+        // Files go to me_media (metheme)
+        $category->syncMediaFromRequest($request, 'image');
+        $category->syncMediaFromRequest($request, 'banner');
 
         return redirect()->route('ecom.categories.index')->with('success', 'Category created.');
     }
@@ -50,10 +51,10 @@ class CategoryController extends EcomController
     {
         $data = $this->validated($request, $category);
         $data['slug'] = $this->slugs->uniqueSlug(($data['slug'] ?? null) ?: $data['name'], Category::class, $category->id);
-        $data['image'] = $this->replaceImage($request, 'image', $category->image, 'categories');
-        $data['banner'] = $this->replaceImage($request, 'banner', $category->banner, 'categories');
 
         me_change_log('Category updated: '.$category->name, 'ecom.category.update')->watch($category)->run(fn () => $category->update($data));
+        $category->syncMediaFromRequest($request, 'image');
+        $category->syncMediaFromRequest($request, 'banner');
 
         return redirect()->route('ecom.categories.index')->with('success', 'Category updated.');
     }
@@ -65,8 +66,6 @@ class CategoryController extends EcomController
         }
 
         me_change_log('Category deleted: '.$category->name, 'ecom.category.delete')->watch($category)->delete(fn () => $category->delete());
-        $this->deleteImage($category->image);
-        $this->deleteImage($category->banner);
 
         return redirect()->route('ecom.categories.index')->with('success', 'Category deleted. Its products are now uncategorised.');
     }

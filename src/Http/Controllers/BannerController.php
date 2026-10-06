@@ -17,7 +17,7 @@ class BannerController extends EcomController
 
     public function index(): View
     {
-        return view('ecom::banners.index', ['banners' => Banner::orderBy('position')->orderBy('sort_order')->get()]);
+        return view('ecom::banners.index', ['banners' => Banner::with('media')->orderBy('position')->orderBy('sort_order')->get()]);
     }
 
     public function create(): View
@@ -28,8 +28,9 @@ class BannerController extends EcomController
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validated($request, true);
-        $data['image'] = $this->storeImage($request->file('image'), 'banners');
-        me_change_log('Banner created', 'ecom.banner.create')->create(fn () => Banner::create($data));
+        $banner = me_change_log('Banner created', 'ecom.banner.create')->create(fn () => Banner::create($data));
+        // Files go to me_media (metheme)
+        $banner->syncMediaFromRequest($request, 'image');
 
         return redirect()->route('ecom.banners.index')->with('success', 'Banner created.');
     }
@@ -43,12 +44,13 @@ class BannerController extends EcomController
     {
         $data = $this->validated($request, false);
 
-        if ($request->hasFile('image')) {
-            $this->deleteImage($banner->image);
-            $data['image'] = $this->storeImage($request->file('image'), 'banners');
+        // A banner is a picture: removing it is only allowed together with a new upload
+        if ($request->input('image_remove') && ! $request->hasFile('image')) {
+            return back()->withInput()->withErrors(['image' => 'A banner needs an image — upload a new one to replace it.']);
         }
 
         me_change_log('Banner updated', 'ecom.banner.update')->watch($banner)->run(fn () => $banner->update($data));
+        $banner->syncMediaFromRequest($request, 'image');
 
         return redirect()->route('ecom.banners.index')->with('success', 'Banner updated.');
     }
@@ -56,7 +58,6 @@ class BannerController extends EcomController
     public function destroy(Banner $banner): RedirectResponse
     {
         me_change_log('Banner deleted', 'ecom.banner.delete')->watch($banner)->delete(fn () => $banner->delete());
-        $this->deleteImage($banner->image);
 
         return redirect()->route('ecom.banners.index')->with('success', 'Banner deleted.');
     }

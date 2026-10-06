@@ -16,12 +16,6 @@ return [
     // Folder on the "public" disk for uploaded images (needs: php artisan storage:link)
     'upload_dir' => 'ecom',
 
-    // Product image thumbnails (longest side in px, webp quality) — used in lists to load faster
-    'thumbnail' => [
-        'size' => 400,
-        'quality' => 80,
-    ],
-
     /*
     | Courier API base URLs. The sandbox URL is used when the courier's mode is "sandbox"
     | (Couriers settings page). {tracking} in "tracking" is replaced by the tracking code.

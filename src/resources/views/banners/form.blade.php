@@ -14,7 +14,7 @@
             @if($banner->exists) @method('PUT') @endif
             <div class="row">
                 <div class="col-md-6">
-                    @include('ecom::partials.image-input', ['name' => 'image', 'label' => 'Image', 'current' => $banner->image, 'required' => true, 'help' => 'Slider: about 1600×700px. Max 4MB.'])
+                    @include('me::components.media-input', ['name' => 'image', 'collection' => 'image', 'model' => $banner, 'label' => 'Image', 'required' => true, 'help' => 'Slider: about 1600×700px. Max 4MB.'])
                     <div class="form-group mb-3">
                         <label class="font-weight-bold text-primary">Position</label>
                         <select name="position" class="form-select form-select-sm">

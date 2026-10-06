@@ -17,7 +17,7 @@
                 @forelse($campaigns as $campaign)
                     @php($label = $campaign->status_label)
                     <tr>
-                        <td class="text-center" style="width:110px">@if($campaign->banner)<img src="{{ ecom_image($campaign->banner) }}" alt="" class="rounded" style="height:40px;max-width:100px;object-fit:cover">@else<i class="fas fa-bolt text-warning fa-lg"></i>@endif</td>
+                        <td class="text-center" style="width:110px">@if($campaign->banner_url)<img src="{{ $campaign->banner_url }}" alt="" class="rounded" style="height:40px;max-width:100px;object-fit:cover">@else<i class="fas fa-bolt text-warning fa-lg"></i>@endif</td>
                         <td><b>{{ $campaign->title }}</b></td>
                         <td class="text-center">{{ $campaign->discount_type === 'percent' ? rtrim(rtrim($campaign->discount_value, '0'), '.') . '% off' : ecom_money($campaign->discount_value) . ' off' }}</td>
                         <td class="text-center">{{ $campaign->products_count }}</td>

@@ -13,7 +13,6 @@ return new class extends Migration
             $table->string('title');
             $table->string('slug')->unique();
             $table->text('description')->nullable();
-            $table->string('banner')->nullable();
             $table->string('discount_type')->default('percent')->comment('percent|fixed');
             $table->decimal('discount_value', 12, 2)->default(0);
             $table->dateTime('starts_at');
@@ -33,7 +32,6 @@ return new class extends Migration
             $table->id();
             $table->string('title')->nullable();
             $table->string('subtitle')->nullable();
-            $table->string('image');
             $table->string('link')->nullable();
             $table->string('button_text')->nullable();
             $table->string('position')->default('slider')->comment('slider|promo');

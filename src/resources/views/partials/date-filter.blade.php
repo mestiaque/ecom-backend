@@ -12,7 +12,7 @@
         {!! $extra ?? '' !!}
         <div class="col-md-auto">
             <button type="submit" class="btn btn-sm btn-encodex-search rounded"><i class="fas fa-search"></i> Show</button>
-            <a href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}" class="btn btn-sm btn-success rounded"><i class="fas fa-file-csv"></i> Export CSV</a>
+            <a download href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}" class="no-loader btn btn-sm btn-success rounded"><i class="fas fa-file-csv"></i> Export CSV</a>
         </div>
         <div class="col-md-auto ms-md-auto">
             @php($presets = ['Today' => [now(), now()], '7 days' => [now()->subDays(6), now()], '30 days' => [now()->subDays(29), now()], 'This month' => [now()->startOfMonth(), now()], 'This year' => [now()->startOfYear(), now()]])

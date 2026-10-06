@@ -19,8 +19,8 @@
                 @forelse($categories as $category)
                     <tr>
                         <td class="text-center" style="width:60px">
-                            @if($category->image)
-                                <img src="{{ ecom_image($category->image) }}" alt="" class="rounded" style="width:40px;height:40px;object-fit:cover">
+                            @if($category->image_url)
+                                <img src="{{ $category->image_url }}" alt="" class="rounded" style="width:40px;height:40px;object-fit:cover">
                             @else
                                 <i class="fas fa-folder text-warning fa-lg"></i>
                             @endif
@@ -30,7 +30,7 @@
                                 @if($category->depth)<i class="fas fa-level-up-alt fa-rotate-90 text-muted me-1"></i>@endif
                                 <b>{{ $category->name }}</b>
                             </span>
-                            @if($category->banner)<span class="badge bg-info-subtle text-info ms-1" title="Has banner"><i class="fas fa-image"></i></span>@endif
+                            @if($category->hasMedia('banner'))<span class="badge bg-info-subtle text-info ms-1" title="Has banner"><i class="fas fa-image"></i></span>@endif
                         </td>
                         <td class="small text-muted">{{ $category->slug }}</td>
                         <td class="text-center"><a href="{{ route('ecom.products.index', ['category' => $category->id]) }}">{{ $category->products_count }}</a></td>

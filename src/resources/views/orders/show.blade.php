@@ -6,7 +6,7 @@
     @endcomponent
     @if(can('ecom_order.invoice'))
         <a href="{{ route('ecom.orders.invoice', $order) }}" target="_blank" class="btn btn-sm btn-secondary shadow-sm"><i class="fas fa-print me-1"></i>Print Invoice</a>
-        <a href="{{ route('ecom.orders.invoice-pdf', $order) }}" class="btn btn-sm btn-danger shadow-sm"><i class="fas fa-file-pdf me-1"></i>PDF</a>
+        <a download href="{{ route('ecom.orders.invoice-pdf', $order) }}" class="no-loader btn btn-sm btn-danger shadow-sm"><i class="fas fa-file-pdf me-1"></i>PDF</a>
     @endif
 @endpush
 

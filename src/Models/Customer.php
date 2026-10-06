@@ -6,13 +6,16 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use ME\Ecom\Enums\OrderStatus;
+use ME\Traits\HasMedia;
 
 class Customer extends Model
 {
+    use HasMedia;
+
     protected $table = 'ecom_customers';
 
     protected $fillable = [
-        'name', 'phone', 'email', 'avatar', 'password', 'address', 'city', 'is_blocked', 'block_reason',
+        'name', 'phone', 'email', 'password', 'address', 'city', 'is_blocked', 'block_reason',
         'phone_verified_at', 'email_verified_at',
     ];
 
@@ -25,9 +28,26 @@ class Customer extends Model
         'email_verified_at' => 'datetime',
     ];
 
+    /**
+     * The storefront's Customer (efront) extends this model; both must store the same type in
+     * polymorphic columns (me_media, activity log) so a photo saved by one is found by the other.
+     */
+    public function getMorphClass(): string
+    {
+        return self::class;
+    }
+
+    /**
+     * Profile photo in me_media (metheme).
+     */
+    protected function mediaCollections(): array
+    {
+        return ['avatar' => ['single' => true, 'mimes' => 'jpg,jpeg,png,webp', 'max_kb' => (int) config('efront.avatar_max_kb', 2048), 'conversions' => ['thumb' => 200]]];
+    }
+
     public function getAvatarUrlAttribute(): ?string
     {
-        return ecom_image($this->avatar);
+        return $this->mediaUrl('avatar', 'thumb');
     }
 
     public function getInitialAttribute(): string

@@ -22,7 +22,7 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    @include('ecom::partials.image-input', ['name' => 'logo', 'label' => 'Logo', 'current' => $brand->logo])
+                    @include('me::components.media-input', ['name' => 'logo', 'collection' => 'logo', 'model' => $brand, 'label' => 'Logo'])
                     @include('ecom::partials.switch', ['name' => 'is_active', 'label' => 'Active', 'checked' => $brand->is_active])
                 </div>
             </div>
