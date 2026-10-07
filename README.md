@@ -26,7 +26,7 @@ Route names start with `ecom.` (`ecom.orders.index`, `ecom.products.edit`, …).
 | Menu | What it does |
 |---|---|
 | Shop Dashboard | Today / month sales, status counts, daily/weekly/monthly chart, top sellers, low stock, new customers |
-| Orders | Filters, status flow (Pending → Confirmed → Processing → Shipped → Delivered / Cancelled / Returned), comments, invoice print + PDF, courier booking, payments & refunds |
+| Orders | Filters, status flow (Pending → Confirmed → Processing → Shipped → Delivered / Cancelled / Returned; **Shipped needs a courier + tracking ID first**), comments, invoice print + PDF, courier booking, payments & refunds |
 | Transactions | All payments and refunds, CSV export |
 | Customers | List, profile, order history, lifetime value, block/unblock |
 | Products | Variants from attributes (own SKU, price, stock, image), multiple images (sortable, main image) with background thumbnails, active/hidden, low-stock alert, CSV import/export |
@@ -130,6 +130,65 @@ There are no image columns in the `ecom_*` tables. See metheme's readme for the 
 
 ```bash
 php artisan metheme:media-conversions --force   # remake thumbnails, e.g. after changing a size
+```
+
+## Invoices
+
+One professional design (`ecom::invoices.document`, built by `ME\Ecom\Services\InvoiceService`) for print and PDF:
+brand bar in the accent colour, logo and store details with the tax ID, invoice / order number, Bill To / Ship To / Delivery
+(courier + tracking), items with SKU, variant and warranty, payment information with gateway TrxIDs, totals with Paid and
+Balance Due, notes, terms, a PAID / UNPAID / REFUNDED / CANCELLED stamp and a signature line. One A4 page for a normal
+order; the PDF footer is repeated on every page; fonts are subset (~40 KB per PDF).
+
+| Where | What |
+|---|---|
+| Order page / order list | **Print Invoice** and **PDF** (permission `ecom_order.invoice`) |
+| Order list | Tick orders → **Print Invoices** / **PDF**: all of them in one document, one invoice per page (max 100) |
+| Storefront | Order result page, My Orders → order, tracking page: **Invoice** / **Download PDF** (signed link, valid 30 days) |
+
+Settings: Shop Settings → Store Info → **Invoice** — number prefix (`INV-` + the number part of the order number:
+ORD-000123 → INV-000123), accent colour, paper (A4 / Letter / A5), tax ID label + number (e.g. BIN), signature line,
+notes, terms & conditions, SKU column on/off. The footer note and logo come from the same page. **Preview** opens the
+latest order's invoice.
+
+```php
+$invoices = app(InvoiceService::class);
+$invoices->number($order);                    // INV-000123
+$invoices->html($orders, ['Download PDF' => $url]); // printable page, toolbar buttons
+$invoices->download($orderOrOrders);          // PDF download response
+```
+
+## Online payments (bKash, SSLCommerz)
+
+`ME\Ecom\Services\Payments\PaymentManager` sends the customer to the gateway and confirms the result with the
+gateway itself — a payment is never trusted from the browser alone.
+
+| Method | How it is paid |
+|---|---|
+| Cash on Delivery | Rider collects the cash (marked paid on delivery) |
+| bKash | Tokenized Checkout: create payment → customer pays on the bKash page → **execute** confirms it (`BkashGateway`) |
+| Card (SSLCommerz) | Hosted payment page → gateway posts back → **validation API** checks `val_id`, `tran_id` and amount (`SslcommerzGateway`) |
+| Nagad | No public sandbox keys yet: the customer types the transaction ID, the admin checks it |
+
+- A gateway is used only when the method is enabled **and** all its credentials are filled (Shop Settings → Payment).
+  Mode `sandbox` = test payments, no real money; base URLs in `config('ecom.payments')`.
+- Each try is a `pending` row in `ecom_transactions` (`gateway_response` keeps the gateway ids, a secret return token and
+  the gateway answer). Confirmed → `success` + gateway TrxID, the order's payment status becomes **Paid** and an order
+  note is added ("… sandbox test payment"). Failed / cancelled → `failed`; the order stays **Unpaid**. Starting a new try
+  marks an unfinished one as failed. Calling the result twice does not check the gateway twice.
+- Sandbox credentials in the demo data (public test accounts):
+  - bKash: app key `4f6o0cjiki2rfm34kfdadl1eqq`, username `sandboxTokenizedUser02` — test wallet `01929918378`, OTP `123456`, PIN `12121`
+    (the often quoted wallet `01770618575` is locked on the sandbox).
+  - SSLCommerz: store `testbox` / `qwerty` — card `4111 1111 1111 1111`, any future expiry, CVV `111`, then **Success** on the test bank page.
+- Locally over plain `http`, Chrome warns before the SSLCommerz (https) page posts back ("The information you're about to
+  submit is not secure") — click **Send anyway**. On a site with https this does not happen.
+
+```php
+$payments = app(PaymentManager::class);
+$payments->gateway('bkash');           // configured gateway or null
+$payments->canPayOnline($order);       // unpaid, open, has a gateway
+$payments->start($order, fn ($transaction, $token) => route('my.callback', [$transaction, $token])); // gateway URL
+$payments->complete($transaction, $request); // PaymentResult (status, trxId, amount, message)
 ```
 
 ## Delivery charges

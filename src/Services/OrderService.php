@@ -118,6 +118,13 @@ class OrderService
             ]);
         }
 
+        // A parcel is "shipped" only once it is with a courier we can track
+        if ($status === OrderStatus::Shipped && (blank($order->courier) || blank($order->tracking_id))) {
+            throw ValidationException::withMessages([
+                'status' => 'Add the courier and tracking ID first (Courier → Send to courier), then mark the order as Shipped.',
+            ]);
+        }
+
         DB::transaction(function () use ($order, $status, $note, $userId) {
             $order->status = $status;
 

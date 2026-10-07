@@ -57,6 +57,7 @@ Route::group([
     // Orders & payments
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/export', [OrderController::class, 'export'])->name('orders.export');
+    Route::get('/orders/invoices', [OrderController::class, 'bulkInvoices'])->name('orders.invoices');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
     Route::post('/orders/{order}/notes', [OrderController::class, 'addNote'])->name('orders.notes');

@@ -5,9 +5,11 @@ namespace ME\Ecom\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use ME\Ecom\Enums\PaymentMethod;
 use ME\Ecom\Services\Couriers\CourierManager;
+use ME\Ecom\Services\InvoiceService;
 use ME\Ecom\Support\EcomSettings;
 use ME\Models\Setting;
 
@@ -30,6 +32,15 @@ class SettingController extends EcomController
         'social_whatsapp' => 'WhatsApp Number',
         'order_prefix' => 'Order Number Prefix',
         'invoice_footer' => 'Invoice Footer Note',
+        'invoice_prefix' => 'Invoice Number Prefix',
+        'invoice_accent' => 'Accent Colour',
+        'invoice_paper' => 'Paper Size',
+        'invoice_tax_label' => 'Tax ID Label',
+        'invoice_tax_number' => 'Tax ID Number',
+        'invoice_signature' => 'Signature Line',
+        'invoice_notes' => 'Notes',
+        'invoice_terms' => 'Terms & Conditions',
+        'invoice_show_sku' => 'Show SKU Column',
     ];
 
     public function __construct(private EcomSettings $settings, private CourierManager $couriers)
@@ -51,7 +62,17 @@ class SettingController extends EcomController
         $rules['order_prefix'] = 'nullable|string|max:10|alpha_dash';
         $rules['store_logo'] = 'nullable|image|max:2048';
         $rules['store_favicon'] = 'nullable|image|max:512';
+        $rules['invoice_prefix'] = 'nullable|string|max:10|alpha_dash';
+        $rules['invoice_accent'] = ['nullable', 'regex:~^#[0-9a-fA-F]{6}$~'];
+        $rules['invoice_paper'] = ['nullable', Rule::in(array_keys(InvoiceService::PAPERS))];
+        $rules['invoice_tax_label'] = 'nullable|string|max:30';
+        $rules['invoice_tax_number'] = 'nullable|string|max:50';
+        $rules['invoice_signature'] = 'nullable|string|max:60';
+        $rules['invoice_notes'] = 'nullable|string|max:1000';
+        $rules['invoice_terms'] = 'nullable|string|max:2000';
+        $rules['invoice_show_sku'] = 'boolean';
         $data = Arr::except($request->validate($rules), ['store_logo', 'store_favicon']);
+        $data['invoice_show_sku'] = $request->boolean('invoice_show_sku') ? '1' : '0';
 
         $keys = array_merge(array_keys($data), ['store_logo', 'store_favicon']);
         $before = $this->settings->snapshot($keys);

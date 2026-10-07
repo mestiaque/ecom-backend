@@ -13,6 +13,7 @@ use ME\Ecom\Enums\PaymentMethod;
 use ME\Ecom\Models\Order;
 use ME\Ecom\Services\Couriers\CourierException;
 use ME\Ecom\Services\Couriers\CourierManager;
+use ME\Ecom\Services\InvoiceService;
 use ME\Ecom\Services\OrderService;
 use ME\Ecom\Support\Csv;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -27,7 +28,7 @@ class OrderController extends EcomController
         $this->middleware('authorization:ecom_order.status')->only('updateStatus');
         $this->middleware('authorization:ecom_order.note')->only('addNote');
         $this->middleware('authorization:ecom_order.courier')->only('sendToCourier');
-        $this->middleware('authorization:ecom_order.invoice')->only(['invoice', 'invoicePdf']);
+        $this->middleware('authorization:ecom_order.invoice')->only(['invoice', 'invoicePdf', 'bulkInvoices']);
         $this->middleware('authorization:ecom_order.export')->only('export');
         $this->middleware('authorization:ecom_payment.record')->only('recordPayment');
         $this->middleware('authorization:ecom_payment.refund')->only('refund');
@@ -142,16 +143,34 @@ class OrderController extends EcomController
         return back()->with('success', 'Refund recorded.');
     }
 
-    public function invoice(Order $order): View
+    public function invoice(Order $order, InvoiceService $invoices): Response
     {
-        return view('ecom::orders.invoice', ['order' => $order->load('items'), 'pdf' => false]);
+        return response($invoices->html($order, ['Download PDF' => route('ecom.orders.invoice-pdf', $order)]));
     }
 
-    public function invoicePdf(Order $order): Response
+    public function invoicePdf(Order $order, InvoiceService $invoices): Response
     {
-        return Pdf::loadView('ecom::orders.invoice', ['order' => $order->load('items'), 'pdf' => true])
-            ->setPaper('a4')
-            ->download("invoice-{$order->order_number}.pdf");
+        return $invoices->download($order);
+    }
+
+    /**
+     * Several invoices in one print / PDF: ?ids[]=1&ids[]=2 (ticked rows of the order list).
+     */
+    public function bulkInvoices(Request $request, InvoiceService $invoices): Response
+    {
+        $ids = $request->validate([
+            'ids' => 'required|array|min:1|max:'.InvoiceService::MAX_ORDERS,
+            'ids.*' => 'integer',
+        ], ['ids.required' => 'Tick at least one order.', 'ids.max' => 'Up to '.InvoiceService::MAX_ORDERS.' invoices at a time.'])['ids'];
+
+        $orders = Order::whereIn('id', $ids)->orderBy('id')->get();
+        abort_if($orders->isEmpty(), 404);
+
+        if ($request->boolean('pdf')) {
+            return $invoices->download($orders);
+        }
+
+        return response($invoices->html($orders, ['Download PDF' => route('ecom.orders.invoices', ['ids' => $orders->pluck('id')->all(), 'pdf' => 1])]));
     }
 
     public function export(Request $request): StreamedResponse

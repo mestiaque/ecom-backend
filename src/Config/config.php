@@ -17,6 +17,21 @@ return [
     'upload_dir' => 'ecom',
 
     /*
+    | Online payment gateway base URLs; the mode (sandbox / live) and credentials are set on the
+    | Payment Methods page. Sandbox = test payments, no real money.
+    */
+    'payments' => [
+        'bkash' => [
+            'live' => 'https://tokenized.pay.bka.sh/v1.2.0-beta',
+            'sandbox' => 'https://tokenized.sandbox.bka.sh/v1.2.0-beta',
+        ],
+        'sslcommerz' => [
+            'live' => 'https://securepay.sslcommerz.com',
+            'sandbox' => 'https://sandbox.sslcommerz.com',
+        ],
+    ],
+
+    /*
     | Courier API base URLs. The sandbox URL is used when the courier's mode is "sandbox"
     | (Couriers settings page). {tracking} in "tracking" is replaced by the tracking code.
     */

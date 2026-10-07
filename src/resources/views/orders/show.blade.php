@@ -158,18 +158,26 @@
                     @if($next)
                         <form action="{{ route('ecom.orders.status', $order) }}" method="POST">
                             @csrf @method('PATCH')
+                            @php($needsCourier = blank($order->courier) || blank($order->tracking_id))
                             <div class="d-flex flex-wrap gap-2 mb-2">
                                 @foreach($next as $status)
-                                    <input type="radio" class="btn-check" name="status" id="st_{{ $status->value }}" value="{{ $status->value }}" @checked($loop->first) required>
-                                    <label class="btn btn-sm btn-outline-{{ $status->color() }}" for="st_{{ $status->value }}"><i class="{{ $status->icon() }} me-1"></i>{{ $status->label() }}</label>
+                                    @php($blocked = $status === \ME\Ecom\Enums\OrderStatus::Shipped && $needsCourier)
+                                    <input type="radio" class="btn-check" name="status" id="st_{{ $status->value }}" value="{{ $status->value }}" @checked($loop->first && ! $blocked) @disabled($blocked) required>
+                                    <label class="btn btn-sm btn-outline-{{ $status->color() }}" for="st_{{ $status->value }}" @if($blocked) title="Add the courier and tracking ID first" @endif>
+                                        <i class="{{ $blocked ? 'fas fa-lock' : $status->icon() }} me-1"></i>{{ $status->label() }}
+                                    </label>
                                 @endforeach
                             </div>
+                            @if($needsCourier && in_array(\ME\Ecom\Enums\OrderStatus::Shipped, $next, true))
+                                <div class="alert alert-warning py-1 px-2 small mb-2"><i class="fas fa-truck me-1"></i>To mark as <b>Shipped</b>, first add the courier and tracking ID in the <b>Courier</b> box.</div>
+                            @endif
+                            @error('status')<div class="text-danger small mb-2">{{ $message }}</div>@enderror
                             <textarea name="note" rows="2" class="form-control form-control-sm mb-2" placeholder="Note (optional)"></textarea>
                             <button class="btn btn-sm btn-encodex-save w-100" onclick="return this.form.status.value === 'cancelled' || this.form.status.value === 'returned' ? confirm('Stock will be added back. Continue?') : true">
                                 <i class="fas fa-check me-1"></i> Update
                             </button>
                         </form>
-                        <div class="small text-muted mt-2">Flow: Pending → Confirmed → Processing → Shipped → Delivered. Cancel before shipping, return after.</div>
+                        <div class="small text-muted mt-2">Flow: Pending → Confirmed → Processing → Shipped (needs courier + tracking) → Delivered. Cancel before shipping, return after.</div>
                     @else
                         <div class="text-muted small">This order is {{ strtolower($order->status->label()) }}; its status can no longer change.</div>
                     @endif

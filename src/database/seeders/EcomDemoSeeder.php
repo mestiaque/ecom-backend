@@ -220,29 +220,38 @@ class EcomDemoSeeder extends Seeder
             'social_whatsapp' => '+8801711-000000',
             'order_prefix' => 'ORD-',
             'invoice_footer' => 'Thank you for shopping with ShopNest BD! Hotline 09612-345678 · 7 days easy return.',
+            'invoice_prefix' => 'INV-',
+            'invoice_accent' => '#1f3a5f',
+            'invoice_paper' => 'a4',
+            'invoice_tax_label' => 'BIN',
+            'invoice_tax_number' => '004567891-0101',
+            'invoice_signature' => 'Authorized Signature',
+            'invoice_show_sku' => '1',
+            'invoice_notes' => 'Keep this invoice for warranty claims. Check the parcel in front of the rider before paying.',
+            'invoice_terms' => "Products can be returned within 7 days in the original box with all accessories.\nWarranty covers manufacturing defects only, not physical or liquid damage.",
             'low_stock_threshold' => '5',
             'payment_cod_enabled' => '1',
             'payment_cod_instructions' => 'Pay the delivery rider in cash when you receive your parcel.',
             'payment_bkash_enabled' => '1',
             'payment_bkash_mode' => 'sandbox',
-            'payment_bkash_app_key' => 'demo-bkash-app-key',
+            'payment_bkash_app_key' => '4f6o0cjiki2rfm34kfdadl1eqq', // bKash's public tokenized sandbox account
             'payment_bkash_username' => 'sandboxTokenizedUser02',
-            'payment_bkash_instructions' => 'You will be redirected to bKash to complete the payment.',
+            'payment_bkash_instructions' => 'Pay with your bKash account on the secure bKash page.',
             'payment_nagad_enabled' => '1',
             'payment_nagad_mode' => 'sandbox',
             'payment_nagad_merchant_id' => '683002007104225',
             'payment_nagad_merchant_number' => '01711000000',
-            'payment_nagad_instructions' => 'Pay securely with your Nagad account.',
+            'payment_nagad_instructions' => 'Send the amount to our Nagad merchant number 01711000000 and enter the transaction ID below.',
             'payment_sslcommerz_enabled' => '1',
             'payment_sslcommerz_mode' => 'sandbox',
-            'payment_sslcommerz_store_id' => 'shopn0demo',
+            'payment_sslcommerz_store_id' => 'testbox', // SSLCommerz's public sandbox store
             'payment_sslcommerz_instructions' => 'Pay with Visa, Mastercard, Amex or internet banking.',
         ]);
         Setting::setImage('ecom_store_logo', Storage::disk('public')->path($logo));
         $settings->set([
-            'payment_bkash_app_secret' => 'demo-secret',
-            'payment_bkash_password' => 'demo-password',
-            'payment_sslcommerz_store_password' => 'demo-password',
+            'payment_bkash_app_secret' => '2is7hdktrekvrbljjh44ll3d9l1dtjo4pasmjvs5vl5qr3fug4b',
+            'payment_bkash_password' => 'sandboxTokenizedUser02@12345',
+            'payment_sslcommerz_store_password' => 'qwerty',
         ], ['payment_bkash_app_secret', 'payment_bkash_password', 'payment_sslcommerz_store_password']);
     }
 
