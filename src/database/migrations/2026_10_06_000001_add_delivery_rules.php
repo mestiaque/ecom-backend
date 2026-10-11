@@ -19,6 +19,14 @@ return new class extends Migration
                 ->comment('per unit, added to the zone charge (negative = less)');
         });
 
+        // Areas (division / district / upazila from metheme's geo_locations) a zone delivers to.
+        // At checkout the most specific match wins: upazila, then district, then division, then the default zone.
+        Schema::create('ecom_shipping_zone_areas', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shipping_zone_id')->constrained('ecom_shipping_zones')->cascadeOnDelete();
+            $table->foreignId('geo_location_id')->unique()->constrained('geo_locations')->cascadeOnDelete()->comment('an area belongs to one zone only');
+        });
+
         Schema::create('ecom_shipping_discounts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('shipping_zone_id')->nullable()->constrained('ecom_shipping_zones')->cascadeOnDelete()->comment('null = every zone');
@@ -56,6 +64,7 @@ return new class extends Migration
         });
 
         Schema::dropIfExists('ecom_shipping_discounts');
+        Schema::dropIfExists('ecom_shipping_zone_areas');
 
         Schema::table('ecom_products', function (Blueprint $table) {
             $table->dropColumn(['free_delivery', 'delivery_charge_adjustment']);

@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('ecom_customers', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('phone')->unique();
+            $table->string('phone')->nullable()->unique()->comment('phone or email (or both) — at least one');
             $table->string('email')->nullable()->unique();
             $table->string('password')->nullable();
             $table->text('address')->nullable();
@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string('name');
             $table->decimal('charge', 10, 2)->default(0);
             $table->string('delivery_time')->nullable()->comment('e.g. 1-2 days');
+            $table->boolean('is_default')->default(false)->comment('used for areas no other zone lists');
             $table->unsignedInteger('sort_order')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();

@@ -3,11 +3,14 @@
 namespace ME\Ecom\database\seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use ME\Ecom\Models\Page;
 use ME\Ecom\Models\ShippingDiscount;
 use ME\Ecom\Models\ShippingZone;
 use ME\Ecom\Models\Warranty;
 use ME\Ecom\Support\EcomSettings;
+use ME\Models\GeoLocation;
 
 /**
  * Default shop data: delivery zones, policy pages and basic settings. Safe to run more than once.
@@ -18,8 +21,24 @@ class EcomSeeder extends Seeder
 {
     public function run(EcomSettings $settings): void
     {
-        foreach ([['Inside Dhaka', 60, '1-2 days', 1], ['Dhaka Suburbs', 100, '2-3 days', 2], ['Outside Dhaka', 120, '3-5 days', 3]] as [$name, $charge, $time, $sort]) {
-            ShippingZone::firstOrCreate(['name' => $name], ['charge' => $charge, 'delivery_time' => $time, 'sort_order' => $sort]);
+        // Zones and the areas they cover (checkout matches upazila, then district, then division, then the default zone)
+        $zones = [
+            ['Inside Dhaka', 60, '1-2 days', 1, false, [['district', 'Dhaka']]],
+            ['Dhaka Suburbs', 100, '2-3 days', 2, false, [['district', 'Gazipur'], ['district', 'Narayanganj'], ['upazila', 'Savar'], ['upazila', 'Keraniganj']]],
+            ['Outside Dhaka', 120, '3-5 days', 3, true, []],
+        ];
+        foreach ($zones as [$name, $charge, $time, $sort, $default, $areas]) {
+            $zone = ShippingZone::firstOrCreate(['name' => $name], ['charge' => $charge, 'delivery_time' => $time, 'sort_order' => $sort, 'is_default' => $default]);
+
+            // Only when the zone has no areas yet and the locations are loaded (php artisan metheme:sync-geo-locations)
+            if ($zone->areas()->doesntExist() && Schema::hasTable('geo_locations')) {
+                $ids = collect($areas)->map(fn ($area) => GeoLocation::where('type', $area[0])->where('name', $area[1])->value('id'))->filter();
+                $taken = DB::table('ecom_shipping_zone_areas')->whereIn('geo_location_id', $ids)->pluck('geo_location_id');
+                $zone->areas()->attach($ids->diff($taken)->all());
+            }
+        }
+        if (ShippingZone::where('is_default', true)->doesntExist()) {
+            ShippingZone::where('name', 'Outside Dhaka')->update(['is_default' => true]);
         }
 
         $warranties = [

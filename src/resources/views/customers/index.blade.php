@@ -35,7 +35,7 @@
                 @forelse($customers as $customer)
                     <tr>
                         <td><a href="{{ route('ecom.customers.show', $customer) }}" class="fw-semibold">{{ $customer->name }}</a><div class="small text-muted">{{ $customer->email }}</div></td>
-                        <td>{{ $customer->phone }}</td>
+                        <td>{{ $customer->phone ?? '—' }}@if(! $customer->phone && $customer->email)<div class="small text-muted">{{ $customer->email }}</div>@endif</td>
                         <td class="text-center">{{ $customer->orders_count }}</td>
                         <td class="text-end fw-semibold">{{ ecom_money($customer->lifetime_value) }}</td>
                         <td class="small">{{ $customer->last_order_at ? \Carbon\Carbon::parse($customer->last_order_at)->format('d M Y') : '—' }}</td>

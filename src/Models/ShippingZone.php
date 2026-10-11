@@ -4,16 +4,26 @@ namespace ME\Ecom\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use ME\Ecom\Services\ShippingCalculator;
+use ME\Models\GeoLocation;
 
 class ShippingZone extends Model
 {
     protected $table = 'ecom_shipping_zones';
 
-    protected $fillable = ['name', 'charge', 'delivery_time', 'sort_order', 'is_active'];
+    protected $fillable = ['name', 'charge', 'delivery_time', 'is_default', 'sort_order', 'is_active'];
 
-    protected $casts = ['charge' => 'decimal:2', 'is_active' => 'boolean'];
+    protected $casts = ['charge' => 'decimal:2', 'is_default' => 'boolean', 'is_active' => 'boolean'];
+
+    /**
+     * Divisions / districts / upazilas this zone delivers to (an area belongs to one zone only).
+     */
+    public function areas(): BelongsToMany
+    {
+        return $this->belongsToMany(GeoLocation::class, 'ecom_shipping_zone_areas', 'shipping_zone_id', 'geo_location_id');
+    }
 
     public function orders(): HasMany
     {

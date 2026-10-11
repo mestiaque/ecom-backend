@@ -134,11 +134,15 @@ php artisan metheme:media-conversions --force   # remake thumbnails, e.g. after 
 
 ## Invoices
 
-One professional design (`ecom::invoices.document`, built by `ME\Ecom\Services\InvoiceService`) for print and PDF:
-brand bar in the accent colour, logo and store details with the tax ID, invoice / order number, Bill To / Ship To / Delivery
-(courier + tracking), items with SKU, variant and warranty, payment information with gateway TrxIDs, totals with Paid and
-Balance Due, notes, terms, a PAID / UNPAID / REFUNDED / CANCELLED stamp and a signature line. One A4 page for a normal
-order; the PDF footer is repeated on every page; fonts are subset (~40 KB per PDF).
+One design (`ecom::invoices.document`, built by `ME\Ecom\Services\InvoiceService`) for print and PDF, in the classic
+Bangladeshi retail style (StarTech / Ryans / Daraz): company header with logo, hotline, email and BIN; a large INVOICE
+title with the invoice number and date; **Bill To / Ship To** and **Invoice Details** boxes (invoice / order no, order
+date, payment + status, delivery, courier / tracking); a fully bordered item grid (SL, product with variant and SKU,
+**warranty** with end date, qty, unit price, total); **amount in words** in the Bangladeshi system
+(`$invoices->inWords(7270)` → "Taka Seven Thousand Two Hundred Seventy Only", crore / lakh / paisa); payment information
+with gateway TrxIDs; totals (Sub Total, Discount, Delivery Charge, Grand Total, Paid, Due); numbered terms
+(one per line in the setting); **Customer** and **Authorized** signature lines with a PAID / UNPAID / REFUNDED / CANCELLED
+stamp; "This is a computer-generated invoice" footer on every PDF page. One A4 page for a normal order, ~40 KB per PDF.
 
 | Where | What |
 |---|---|
@@ -195,7 +199,14 @@ $payments->complete($transaction, $request); // PaymentResult (status, trxId, am
 
 Set in the admin panel; worked out by `ME\Ecom\Services\ShippingCalculator` (checkout and `OrderService` both use it):
 
-1. **Zone charge** — Shop Settings → Shipping → Delivery Zones.
+1. **Zone charge** — Shop Settings → Shipping → Delivery Zones. The zone is **not chosen by the customer**: it comes
+   from the delivery address. Each zone lists its **areas** (divisions, districts, upazilas / thanas from metheme's
+   `geo_locations`; table `ecom_shipping_zone_areas`, an area belongs to one zone only) and one zone can be the
+   **default** (`is_default`) for every other area. The most specific match wins: the customer's upazila, then district,
+   then division, then the default zone (`ShippingCalculator::zoneFor($divisionId, $districtId, $upazilaId)`); no match and
+   no default = "we do not deliver to this area yet". Checkout shows the zone and charge as soon as the address is chosen
+   (`areaMap()` gives the page area id → zone id) and the server works the zone out again when the order is placed.
+   Demo: Inside Dhaka = Dhaka district, Dhaka Suburbs = Gazipur, Narayanganj, Savar, Keraniganj, Outside Dhaka = default.
 2. **+ product extra / less charge × quantity** — Product → Delivery (`delivery_charge_adjustment`, negative = less).
 3. **Free** when every product in the order has **Free delivery** (`free_delivery`); a free item in a mixed order adds nothing.
 4. **− order-amount discount** — Shipping → Delivery Discounts: "subtotal at least X → free / % off / amount off", for all zones or one zone. The highest rule reached is used (a zone's own rule wins a tie). Never below zero.

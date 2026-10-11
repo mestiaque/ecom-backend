@@ -23,7 +23,7 @@
                     </div>
                 </div>
                 <div class="small">
-                    <div><i class="fas fa-phone fa-fw text-muted"></i> {{ $customer->phone }} @if($customer->phone_verified_at)<i class="fas fa-check-circle text-success" title="Verified"></i>@endif</div>
+                    @if($customer->phone)<div><i class="fas fa-phone fa-fw text-muted"></i> {{ $customer->phone }} @if($customer->phone_verified_at)<i class="fas fa-check-circle text-success" title="Verified"></i>@endif</div>@endif
                     @if($customer->email)<div><i class="fas fa-envelope fa-fw text-muted"></i> {{ $customer->email }} @if($customer->email_verified_at)<i class="fas fa-check-circle text-success" title="Verified"></i>@endif</div>@endif
                     @if($customer->address)<div><i class="fas fa-map-marker-alt fa-fw text-muted"></i> {{ $customer->address }}@if($customer->city), {{ $customer->city }}@endif</div>@endif
                     <div><i class="fas fa-calendar fa-fw text-muted"></i> Joined {{ $customer->created_at->format('d M Y') }}</div>

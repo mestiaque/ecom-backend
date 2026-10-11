@@ -12,24 +12,33 @@
                 </button>
             </div>
             <div class="card-body p-0">
+                @error('areas')<div class="alert alert-danger small m-2 py-2">{{ $message }}</div>@enderror
                 <table class="table table-sm table-hover mb-0 align-middle">
-                    <thead class="table-light"><tr><th class="ps-3">Zone</th><th class="text-end">Charge</th><th>Delivery Time</th><th class="text-center">Orders</th><th class="text-center">Status</th><th></th></tr></thead>
+                    <thead class="table-light"><tr><th class="ps-3">Zone</th><th>Areas</th><th class="text-end">Charge</th><th>Delivery Time</th><th class="text-center">Orders</th><th class="text-center">Status</th><th></th></tr></thead>
                     <tbody>
                         @forelse($zones as $zone)
                             <tr>
                                 <td class="ps-3 fw-semibold">{{ $zone->name }}</td>
+                                <td class="small" style="max-width:280px">
+                                    @if($zone->is_default)<span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1">Default — all other areas</span>@endif
+                                    @foreach($zone->areas->take(4) as $area)
+                                        <span class="badge bg-light text-dark border">{{ $area->name }}@if($area->type !== 'upazila') <span class="text-muted">({{ $area->type }})</span>@endif</span>
+                                    @endforeach
+                                    @if($zone->areas->count() > 4)<span class="text-muted">+{{ $zone->areas->count() - 4 }} more</span>@endif
+                                    @if(! $zone->is_default && $zone->areas->isEmpty())<span class="text-danger">No areas — never used at checkout</span>@endif
+                                </td>
                                 <td class="text-end">{{ ecom_money($zone->charge) }}</td>
                                 <td>{{ $zone->delivery_time ?: '—' }}</td>
                                 <td class="text-center">{{ $zone->orders_count }}</td>
                                 <td class="text-center">@include('ecom::partials.active-badge', ['active' => $zone->is_active])</td>
                                 <td class="text-end pe-3 text-nowrap">
                                     <button class="btn btn-sm btn-encodex-edit" data-bs-toggle="modal" data-bs-target="#zoneModal"
-                                        data-zone="{{ json_encode($zone->only(['id', 'name', 'charge', 'delivery_time', 'sort_order', 'is_active'])) }}"><i class="fas fa-edit"></i></button>
+                                        data-zone="{{ json_encode($zone->only(['id', 'name', 'charge', 'delivery_time', 'sort_order', 'is_active', 'is_default']) + ['areas' => $zone->areas->pluck('id')]) }}"><i class="fas fa-edit"></i></button>
                                     @include('ecom::partials.actions', ['delete' => route('ecom.shipping.zones.destroy', $zone)])
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="text-center text-muted py-4">No zones yet. Add e.g. "Inside Dhaka" and "Outside Dhaka".</td></tr>
+                            <tr><td colspan="7" class="text-center text-muted py-4">No zones yet. Add e.g. "Inside Dhaka" and "Outside Dhaka".</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -131,7 +140,7 @@
 </div>
 
 <div class="modal fade" id="zoneModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <form class="modal-content" method="POST" action="{{ route('ecom.shipping.zones.store') }}" id="zoneForm">
             @csrf
             <input type="hidden" name="_method" value="POST" id="zoneMethod">
@@ -143,6 +152,22 @@
                 <input type="number" step="0.01" min="0" name="charge" class="form-control form-control-sm mb-2" required>
                 <label class="form-label small mb-0">Delivery time</label>
                 <input type="text" name="delivery_time" class="form-control form-control-sm mb-2" placeholder="1-2 days">
+                <label class="form-label small mb-0">Areas this zone delivers to</label>
+                <select name="areas[]" id="zoneAreas" class="form-select form-select-sm" multiple data-placeholder="Search a division, district or upazila / thana…">
+                    @foreach($areaOptions as $division => $options)
+                        <optgroup label="{{ $division }}">
+                            @foreach($options as $option)
+                                <option value="{{ $option['id'] }}">{{ $option['label'] }}</option>
+                            @endforeach
+                        </optgroup>
+                    @endforeach
+                </select>
+                <small class="text-muted d-block mb-2">At checkout the most specific match wins: the customer's upazila, then district, then division. E.g. Inside Dhaka = Dhaka district; Dhaka Suburbs = Gazipur, Narayanganj, Savar.</small>
+                <div class="form-check form-switch mb-2">
+                    <input type="hidden" name="is_default" value="0">
+                    <input class="form-check-input" type="checkbox" name="is_default" value="1" id="zoneDefault">
+                    <label class="form-check-label" for="zoneDefault">Default zone — used for every area no other zone lists (e.g. Outside Dhaka)</label>
+                </div>
                 <label class="form-label small mb-0">Sort order</label>
                 <input type="number" min="0" name="sort_order" class="form-control form-control-sm mb-2" value="0">
                 <div class="form-check form-switch">
@@ -171,6 +196,17 @@ document.getElementById('zoneModal').addEventListener('show.bs.modal', function 
     form.delivery_time.value = zone ? (zone.delivery_time || '') : '';
     form.sort_order.value = zone ? zone.sort_order : 0;
     document.getElementById('zoneActive').checked = zone ? !!zone.is_active : true;
+    document.getElementById('zoneDefault').checked = zone ? !!zone.is_default : false;
+    const areas = (zone && zone.areas ? zone.areas : []).map(String);
+    const select = document.getElementById('zoneAreas');
+    [...select.options].forEach(option => option.selected = areas.includes(option.value));
+    if (window.jQuery && jQuery.fn.select2) {
+        const $areas = jQuery(select);
+        if (!$areas.data('select2')) {
+            $areas.select2({ dropdownParent: jQuery('#zoneModal'), width: '100%', placeholder: select.dataset.placeholder, closeOnSelect: false });
+        }
+        $areas.trigger('change');
+    }
 });
 
 const discountModal = document.getElementById('discountModal');

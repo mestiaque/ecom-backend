@@ -53,6 +53,50 @@ class InvoiceService
     }
 
     /**
+     * Amount in words, Bangladeshi system: 12,50,07,270.50 → "Taka Twelve Crore Fifty Lakh Seven Thousand
+     * Two Hundred Seventy and Fifty Paisa Only".
+     */
+    public function inWords(float|string $amount): string
+    {
+        $amount = round((float) $amount, 2);
+        $taka = (int) floor($amount);
+        $paisa = (int) round(($amount - $taka) * 100);
+
+        $words = 'Taka '.($taka > 0 ? self::wordsBd($taka) : 'Zero');
+        if ($paisa > 0) {
+            $words .= ' and '.self::wordsBd($paisa).' Paisa';
+        }
+
+        return $words.' Only';
+    }
+
+    private static function wordsBd(int $number): string
+    {
+        $parts = [];
+        foreach ([10000000 => 'Crore', 100000 => 'Lakh', 1000 => 'Thousand', 100 => 'Hundred'] as $unit => $name) {
+            if ($number >= $unit) {
+                // Above a crore the crore count itself can be large ("One Hundred Twenty Crore")
+                $parts[] = ($unit === 10000000 ? self::wordsBd(intdiv($number, $unit)) : self::wordsBelowHundred(intdiv($number, $unit))).' '.$name;
+                $number %= $unit;
+            }
+        }
+        if ($number > 0) {
+            $parts[] = self::wordsBelowHundred($number);
+        }
+
+        return implode(' ', $parts);
+    }
+
+    private static function wordsBelowHundred(int $number): string
+    {
+        $ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen',
+            'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        $tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+        return $number < 20 ? $ones[$number] : trim($tens[intdiv($number, 10)].' '.$ones[$number % 10]);
+    }
+
+    /**
      * Printable page (browser). $actions = buttons shown above the invoice, e.g. ['pdf' => url].
      *
      * @param  Collection<int, Order>|Order  $orders

@@ -7,7 +7,8 @@ use ME\Ecom\Models\ShippingDiscount;
 use ME\Ecom\Models\ShippingZone;
 
 /**
- * The delivery charge of an order, used by checkout and OrderService:
+ * The delivery charge of an order, used by checkout and OrderService. The zone comes from the delivery address
+ * (zoneFor): the zone listing the upazila, else the district, else the division, else the default zone.
  *
  *   1. zone charge (Shipping → Delivery Zones)
  *   2. + each product's extra / less charge × quantity (products with free delivery add nothing)
@@ -16,6 +17,44 @@ use ME\Ecom\Models\ShippingZone;
  */
 class ShippingCalculator
 {
+    /**
+     * Zone for a delivery address: the most specific area match among active zones, then the default zone.
+     * Null = no delivery to this area.
+     */
+    public function zoneFor(?int $divisionId, ?int $districtId, ?int $upazilaId): ?ShippingZone
+    {
+        foreach (array_filter([$upazilaId, $districtId, $divisionId]) as $areaId) {
+            $zone = ShippingZone::active()->whereHas('areas', fn ($q) => $q->whereKey($areaId))->first();
+
+            if ($zone) {
+                return $zone;
+            }
+        }
+
+        return ShippingZone::active()->where('is_default', true)->first();
+    }
+
+    /**
+     * Geo location id => zone id for every active zone's areas, plus the default zone (checkout works out the
+     * zone in the browser while the address is typed; the server checks it again with zoneFor()).
+     *
+     * @return array{areas: array<int, int>, default: ?int}
+     */
+    public function areaMap(): array
+    {
+        $zones = ShippingZone::active()->with('areas:id')->get();
+        $areas = [];
+
+        // A plain loop: flatMap() would renumber the keys, and the keys are the area ids
+        foreach ($zones as $zone) {
+            foreach ($zone->areas as $area) {
+                $areas[$area->id] = $zone->id;
+            }
+        }
+
+        return ['areas' => $areas, 'default' => $zones->firstWhere('is_default', true)?->id];
+    }
+
     /**
      * @param  iterable<int, array{product: Product, quantity: int}>  $items
      * @return array{base: float, adjustment: float, before_discount: float, discount: float, charge: float, all_free: bool, rule: ?ShippingDiscount}
