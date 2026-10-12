@@ -104,9 +104,9 @@
                         </td>
                         <td class="text-center">
                             @if($product->stock <= 0)
-                                <span class="badge bg-danger">Out of stock</span>
+                                <span class="badge bg-danger-subtle text-danger">Out of stock</span>
                             @elseif($product->isLowStock())
-                                <span class="badge bg-warning text-dark">{{ $product->stock }} · Low</span>
+                                <span class="badge bg-warning-subtle text-warning">{{ $product->stock }} · Low</span>
                             @else
                                 <span class="badge bg-success-subtle text-success">{{ $product->stock }}</span>
                             @endif
@@ -115,7 +115,7 @@
                             @if(can('ecom_product.edit'))
                                 <form action="{{ route('ecom.products.toggle', $product) }}" method="POST" class="d-inline">
                                     @csrf @method('PATCH')
-                                    <button type="submit" class="btn btn-sm p-0 border-0" title="{{ $product->is_active ? 'Hide' : 'Activate' }}">
+                                    <button type="submit" class="btn btn-sm p-0 btn-encodex-blank" title="{{ $product->is_active ? 'Hide' : 'Activate' }}">
                                         @include('ecom::partials.active-badge', ['active' => $product->is_active, 'off' => 'Hidden'])
                                     </button>
                                 </form>

@@ -31,7 +31,7 @@
                         <td class="text-end">{{ $coupon->min_order_amount ? ecom_money($coupon->min_order_amount) : '—' }}</td>
                         <td class="text-center">{{ $coupon->used_count }} / {{ $coupon->usage_limit ?? '∞' }}</td>
                         <td class="small">{{ $coupon->starts_at?->format('d M Y') ?? 'Now' }} → {{ $coupon->expires_at?->format('d M Y') ?? 'No expiry' }}</td>
-                        <td class="text-center"><span class="badge bg-{{ $label === 'Active' ? 'success' : ($label === 'Scheduled' ? 'info' : 'secondary') }}">{{ $label }}</span></td>
+                        <td class="text-center"><span class="badge bg-{{ $label === 'Active' ? 'success' : ($label === 'Scheduled' ? 'info' : 'secondary') }}-subtle text-{{ $label === 'Active' ? 'success' : ($label === 'Scheduled' ? 'info' : 'secondary') }}">{{ $label }}</span></td>
                         <td class="text-center">
                             @include('ecom::partials.actions', [
                                 'edit' => can('ecom_coupon.edit') ? route('ecom.coupons.edit', $coupon) : null,

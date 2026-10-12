@@ -22,7 +22,7 @@
                                 <td class="small" style="max-width:280px">
                                     @if($zone->is_default)<span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1">Default — all other areas</span>@endif
                                     @foreach($zone->areas->take(4) as $area)
-                                        <span class="badge bg-light text-dark border">{{ $area->name }}@if($area->type !== 'upazila') <span class="text-muted">({{ $area->type }})</span>@endif</span>
+                                        <span class="badge bg-light-subtle text-light border">{{ $area->name }}@if($area->type !== 'upazila') <span class="text-muted">({{ $area->type }})</span>@endif</span>
                                     @endforeach
                                     @if($zone->areas->count() > 4)<span class="text-muted">+{{ $zone->areas->count() - 4 }} more</span>@endif
                                     @if(! $zone->is_default && $zone->areas->isEmpty())<span class="text-danger">No areas — never used at checkout</span>@endif

@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function chip(id) {
         const v = valueInfo[id];
         const swatch = v.color ? '<span class="ec-swatch" style="background:' + esc(v.color) + '"></span>' : '';
-        return '<span class="badge bg-light text-dark border me-1" title="' + esc(v.attribute.name) + '">' + swatch + esc(v.value) + '</span>';
+        return '<span class="badge bg-light-subtle text-light border me-1" title="' + esc(v.attribute.name) + '">' + swatch + esc(v.value) + '</span>';
     }
 
     function addRow(row) {

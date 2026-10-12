@@ -5,7 +5,7 @@
     @if(can('ecom_order.invoice'))
         {{-- Ticked rows → one print page / one PDF (opens in a new tab) --}}
         <button type="submit" form="ecBulkInvoices" class="btn btn-sm btn-secondary shadow-sm" data-bulk-invoice disabled title="Tick orders in the list first">
-            <i class="fas fa-print me-1"></i>Print Invoices <span class="badge bg-light text-dark" data-bulk-count>0</span>
+            <i class="fas fa-print me-1"></i>Print Invoices <span class="badge bg-light-subtle text-light" data-bulk-count>0</span>
         </button>
         <button type="submit" form="ecBulkInvoices" name="pdf" value="1" class="no-loader btn btn-sm btn-danger shadow-sm" data-bulk-invoice disabled>
             <i class="fas fa-file-pdf me-1"></i>PDF
@@ -22,13 +22,13 @@
     <ul class="nav nav-pills nav-sm mb-3 flex-nowrap overflow-auto small">
         <li class="nav-item">
             <a class="nav-link py-1 {{ request('status') ? '' : 'active' }}" href="{{ request()->fullUrlWithQuery(['status' => null, 'page' => null]) }}">
-                All <span class="badge bg-secondary">{{ $statusCounts->sum() }}</span>
+                All <span class="badge bg-secondary-subtle text-secondary">{{ $statusCounts->sum() }}</span>
             </a>
         </li>
         @foreach(\ME\Ecom\Enums\OrderStatus::cases() as $status)
             <li class="nav-item">
                 <a class="nav-link py-1 text-nowrap {{ request('status') === $status->value ? 'active' : '' }}" href="{{ request()->fullUrlWithQuery(['status' => $status->value, 'page' => null]) }}">
-                    {{ $status->label() }} <span class="badge bg-{{ $status->color() }}">{{ $statusCounts[$status->value] ?? 0 }}</span>
+                    {{ $status->label() }} <span class="badge bg-{{ $status->color() }}-subtle text-{{ $status->color() }}">{{ $statusCounts[$status->value] ?? 0 }}</span>
                 </a>
             </li>
         @endforeach

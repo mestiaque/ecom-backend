@@ -246,6 +246,10 @@ tables (or `php artisan migrate:refresh --path=vendor/mestiaque/ecom/src/databas
 
 Declared in `src/Config/permission.php` (`ecom_order.status`, `ecom_product.import`, `ecom_attribute.edit`, `ecom_warranty.edit`, …) — assign them to roles on metheme's Roles page.
 
+## Badges
+
+All badges use the soft style `badge bg-X-subtle text-X` (dynamic: `bg-{{ $status->color() }}-subtle text-{{ $status->color() }}`; shared partials `ecom::partials.status-badge` and `ecom::partials.active-badge`). metheme's `encodex.css` gives warning / info / light / secondary badge text Bootstrap's darker emphasis shade so it stays readable.
+
 ## Download links in admin views
 
 File downloads (CSV export, invoice PDF, import template …) must use `<a download href="…" class="no-loader …">`. Without them metheme's page loader starts on click and never stops, because a download does not load a new page.

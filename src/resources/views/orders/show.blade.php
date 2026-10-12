@@ -95,7 +95,7 @@
                         @forelse($order->transactions as $trx)
                             <tr>
                                 <td class="ps-3 text-nowrap">{{ $trx->created_at->format('d M Y h:i A') }}</td>
-                                <td><span class="badge {{ $trx->type === 'refund' ? 'bg-danger' : 'bg-success' }}">{{ ucfirst($trx->type) }}</span> @if($trx->status !== 'success')<span class="badge bg-warning text-dark">{{ $trx->status }}</span>@endif</td>
+                                <td><span class="badge {{ $trx->type === 'refund' ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success' }}">{{ ucfirst($trx->type) }}</span> @if($trx->status !== 'success')<span class="badge bg-warning-subtle text-warning">{{ $trx->status }}</span>@endif</td>
                                 <td>{{ \ME\Ecom\Enums\PaymentMethod::tryFrom($trx->method)?->label() ?? $trx->method }}</td>
                                 <td>{{ $trx->trx_id ?: '—' }}</td>
                                 <td class="text-end">{{ ecom_money($trx->amount) }}</td>
@@ -127,9 +127,9 @@
                         <li class="d-flex gap-2 mb-3">
                             <div>
                                 @if($note->status)
-                                    <span class="badge rounded-circle bg-{{ $note->status->color() }} p-2"><i class="{{ $note->status->icon() }}"></i></span>
+                                    <span class="badge rounded-circle bg-{{ $note->status->color() }}-subtle text-{{ $note->status->color() }} p-2"><i class="{{ $note->status->icon() }}"></i></span>
                                 @else
-                                    <span class="badge rounded-circle bg-light text-secondary p-2 border"><i class="fas fa-comment"></i></span>
+                                    <span class="badge rounded-circle bg-light-subtle text-light text-secondary p-2 border"><i class="fas fa-comment"></i></span>
                                 @endif
                             </div>
                             <div>
@@ -195,7 +195,7 @@
                     @else
                         {{ $order->customer_name }}
                     @endif
-                    @if($order->customer?->is_blocked)<span class="badge bg-danger">Blocked</span>@endif
+                    @if($order->customer?->is_blocked)<span class="badge bg-danger-subtle text-danger">Blocked</span>@endif
                 </div>
                 <div><i class="fas fa-phone fa-fw text-muted"></i> <a href="tel:{{ $order->customer_phone }}">{{ $order->customer_phone }}</a></div>
                 @if($order->customer_email)<div><i class="fas fa-envelope fa-fw text-muted"></i> {{ $order->customer_email }}</div>@endif

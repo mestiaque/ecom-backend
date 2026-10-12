@@ -34,8 +34,8 @@
             <div class="card-body">
                 <div class="d-flex flex-wrap gap-2 mb-2">
                     @include('ecom::partials.active-badge', ['active' => $product->is_active, 'off' => 'Hidden'])
-                    @if($product->is_featured)<span class="badge bg-warning text-dark"><i class="fas fa-star"></i> Featured</span>@endif
-                    @if($campaign = $product->activeCampaign())<span class="badge bg-danger"><i class="fas fa-bolt"></i> {{ $campaign->title }}</span>@endif
+                    @if($product->is_featured)<span class="badge bg-warning-subtle text-warning"><i class="fas fa-star"></i> Featured</span>@endif
+                    @if($campaign = $product->activeCampaign())<span class="badge bg-danger-subtle text-danger"><i class="fas fa-bolt"></i> {{ $campaign->title }}</span>@endif
                 </div>
                 <h4 class="fw-bold mb-1">{{ $product->title }}</h4>
                 <div class="text-muted small mb-3">
@@ -80,7 +80,7 @@
                                     <td>{{ $variant->sku ?: '—' }}</td>
                                     <td class="text-end">{{ ecom_money($variant->selling_price) }}</td>
                                     <td class="text-center">
-                                        <span class="badge {{ $variant->stock <= 0 ? 'bg-danger' : ($variant->stock <= $product->low_stock_level ? 'bg-warning text-dark' : 'bg-success-subtle text-success') }}">{{ $variant->stock }}</span>
+                                        <span class="badge {{ $variant->stock <= 0 ? 'bg-danger-subtle text-danger' : ($variant->stock <= $product->low_stock_level ? 'bg-warning-subtle text-warning' : 'bg-success-subtle text-success') }}">{{ $variant->stock }}</span>
                                     </td>
                                     <td class="text-center">@include('ecom::partials.active-badge', ['active' => $variant->is_active])</td>
                                 </tr>

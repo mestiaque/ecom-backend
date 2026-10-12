@@ -25,7 +25,7 @@
 
 @forelse($faqs as $category => $items)
     <div class="card glass-card w-100 mb-3">
-        <div class="card-header fw-semibold">{{ $category }} <span class="badge bg-secondary ms-1">{{ $items->count() }}</span></div>
+        <div class="card-header fw-semibold">{{ $category }} <span class="badge bg-secondary-subtle text-secondary ms-1">{{ $items->count() }}</span></div>
         <div class="table-responsive">
             <table class="table table-sm table-bordered table-hover table-striped table-encodex align-middle mb-0">
                 <thead class="text-center"><tr><th style="width:70px">Order</th><th>Question</th><th style="width:110px">Status</th><th style="width:110px">Actions</th></tr></thead>

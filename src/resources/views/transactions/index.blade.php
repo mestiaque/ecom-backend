@@ -48,11 +48,11 @@
                     <tr>
                         <td class="small text-nowrap">{{ $trx->created_at->format('d M Y h:i A') }}</td>
                         <td>@if($trx->order)<a href="{{ route('ecom.orders.show', $trx->order) }}">{{ $trx->order->order_number }}</a>@endif</td>
-                        <td class="text-center"><span class="badge {{ $trx->type === 'refund' ? 'bg-danger' : 'bg-success' }}">{{ ucfirst($trx->type) }}</span></td>
+                        <td class="text-center"><span class="badge {{ $trx->type === 'refund' ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success' }}">{{ ucfirst($trx->type) }}</span></td>
                         <td>{{ \ME\Ecom\Enums\PaymentMethod::tryFrom($trx->method)?->label() ?? $trx->method }}</td>
                         <td>{{ $trx->trx_id ?: '—' }}</td>
                         <td class="text-end fw-semibold {{ $trx->type === 'refund' ? 'text-danger' : '' }}">{{ $trx->type === 'refund' ? '−' : '' }}{{ ecom_money($trx->amount) }}</td>
-                        <td class="text-center"><span class="badge bg-{{ $trx->status === 'success' ? 'success' : ($trx->status === 'failed' ? 'danger' : 'warning') }}">{{ ucfirst($trx->status) }}</span></td>
+                        <td class="text-center"><span class="badge bg-{{ $trx->status === 'success' ? 'success' : ($trx->status === 'failed' ? 'danger' : 'warning') }}-subtle text-{{ $trx->status === 'success' ? 'success' : ($trx->status === 'failed' ? 'danger' : 'warning') }}">{{ ucfirst($trx->status) }}</span></td>
                         <td class="small">{{ $trx->note }} @if($trx->user)<span class="text-muted">— {{ $trx->user->name }}</span>@endif</td>
                     </tr>
                 @empty

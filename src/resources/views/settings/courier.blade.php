@@ -11,7 +11,7 @@
                 <div class="card glass-card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span class="fw-semibold">{{ $courier->label() }}
-                            @if($courier->isConfigured())<span class="badge bg-success ms-1">Ready</span>@endif
+                            @if($courier->isConfigured())<span class="badge bg-success-subtle text-success ms-1">Ready</span>@endif
                         </span>
                         <div class="form-check form-switch mb-0">
                             <input type="hidden" name="{{ $prefix }}enabled" value="0">

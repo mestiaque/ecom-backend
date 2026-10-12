@@ -22,7 +22,7 @@
                         <td class="text-center">{{ $campaign->discount_type === 'percent' ? rtrim(rtrim($campaign->discount_value, '0'), '.') . '% off' : ecom_money($campaign->discount_value) . ' off' }}</td>
                         <td class="text-center">{{ $campaign->products_count }}</td>
                         <td class="small">{{ $campaign->starts_at->format('d M Y h:i A') }}<br>→ {{ $campaign->ends_at->format('d M Y h:i A') }}</td>
-                        <td class="text-center"><span class="badge bg-{{ ['Running' => 'success', 'Upcoming' => 'info'][$label] ?? 'secondary' }}">{{ $label }}</span></td>
+                        <td class="text-center"><span class="badge bg-{{ ['Running' => 'success', 'Upcoming' => 'info'][$label] ?? 'secondary' }}-subtle text-{{ ['Running' => 'success', 'Upcoming' => 'info'][$label] ?? 'secondary' }}">{{ $label }}</span></td>
                         <td class="text-center">
                             @include('ecom::partials.actions', [
                                 'edit' => can('ecom_campaign.edit') ? route('ecom.campaigns.edit', $campaign) : null,

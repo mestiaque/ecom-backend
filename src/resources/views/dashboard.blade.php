@@ -159,7 +159,7 @@
                                 </td>
                                 <td><a href="{{ route('ecom.products.edit', $product) }}">{{ \Illuminate\Support\Str::limit($product->title, 30) }}</a></td>
                                 <td class="text-end pe-3">
-                                    <span class="badge {{ $product->stock <= 0 ? 'bg-danger' : 'bg-warning text-dark' }}">{{ $product->stock <= 0 ? 'Out' : $product->stock . ' left' }}</span>
+                                    <span class="badge {{ $product->stock <= 0 ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning' }}">{{ $product->stock <= 0 ? 'Out' : $product->stock . ' left' }}</span>
                                 </td>
                             </tr>
                         @empty

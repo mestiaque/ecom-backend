@@ -22,7 +22,7 @@
                 <h4 class="fw-bold mb-0">{{ $order->order_number }}</h4>
                 <div class="text-muted small">Placed {{ $order->created_at->format('d M Y, h:i A') }}</div>
             </div>
-            <span class="badge fs-6 bg-{{ $status->color() }}">{{ $labels[$status->value] ?? $status->label() }}</span>
+            <span class="badge fs-6 bg-{{ $status->color() }}-subtle text-{{ $status->color() }}">{{ $labels[$status->value] ?? $status->label() }}</span>
         </div>
 
         @if($status === \ME\Ecom\Enums\OrderStatus::Cancelled)
@@ -80,7 +80,7 @@
                 <div class="d-flex justify-content-between fw-bold fs-5 mt-1"><span>Total</span><span>{{ ecom_money($order->total) }}</span></div>
                 <div class="d-flex justify-content-between small mt-1">
                     <span>{{ $order->payment_method->label() }}</span>
-                    <span class="badge bg-{{ $order->payment_status->color() }}">{{ $order->payment_status->label() }}</span>
+                    <span class="badge bg-{{ $order->payment_status->color() }}-subtle text-{{ $order->payment_status->color() }}">{{ $order->payment_status->label() }}</span>
                 </div>
             </div>
         </div>
